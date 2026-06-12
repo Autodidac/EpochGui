@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 3.23)
+cmake_minimum_required(VERSION 3.28)
+
+set(CMAKE_CXX_SCAN_FOR_MODULES ON)
 
 project(EpochGui VERSION 0.87.15 LANGUAGES CXX)
 
@@ -33,6 +35,12 @@ endif()
 
 set(EPOCHGUI_SOURCE_ROOT "${_epochgui_resolved_source_root}" CACHE PATH "Directory containing include/epoch/gui and src/gui." FORCE)
 
+set(EPOCHGUI_MODULE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}" CACHE PATH "Directory containing modules/epoch.gui.ixx." FORCE)
+
+set(EPOCHGUI_MODULES
+    "${EPOCHGUI_MODULE_ROOT}/modules/epoch.gui.ixx"
+)
+
 set(EPOCHGUI_PUBLIC_HEADERS
     "${EPOCHGUI_SOURCE_ROOT}/include/epoch/gui/dock_layout.hpp"
     "${EPOCHGUI_SOURCE_ROOT}/include/epoch/gui/floating_window.hpp"
@@ -50,6 +58,12 @@ set(EPOCHGUI_SOURCES
 add_library(EpochGui STATIC
     ${EPOCHGUI_PUBLIC_HEADERS}
     ${EPOCHGUI_SOURCES}
+)
+
+target_sources(EpochGui PUBLIC
+    FILE_SET epochgui_modules TYPE CXX_MODULES
+        BASE_DIRS "${EPOCHGUI_MODULE_ROOT}/modules"
+        FILES ${EPOCHGUI_MODULES}
 )
 
 add_library(epoch_gui ALIAS EpochGui)
@@ -73,3 +87,4 @@ endif()
 
 source_group(TREE "${EPOCHGUI_SOURCE_ROOT}/include" PREFIX "Header Files" FILES ${EPOCHGUI_PUBLIC_HEADERS})
 source_group(TREE "${EPOCHGUI_SOURCE_ROOT}/src" PREFIX "Source Files" FILES ${EPOCHGUI_SOURCES})
+source_group(TREE "${EPOCHGUI_MODULE_ROOT}/modules" PREFIX "Module Files" FILES ${EPOCHGUI_MODULES})

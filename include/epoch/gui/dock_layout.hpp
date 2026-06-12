@@ -87,9 +87,38 @@ namespace epochnamespace::gui_lib
         std::uint32_t context_window_count{};
     };
 
-    bool is_valid_dock_slot(DockSlot slot) noexcept;
-    bool dock_pane_requests_context_window(const DockPaneState& pane) noexcept;
-    DockPaneLayout make_dock_pane_layout(
+    class DockLayoutController final : public LayoutController
+    {
+    public:
+        [[nodiscard]] std::string_view name() const noexcept override;
+        [[nodiscard]] bool is_valid_slot(DockSlot slot) const noexcept;
+        [[nodiscard]] bool pane_requests_context_window(const DockPaneState& pane) const noexcept;
+        [[nodiscard]] DockPaneLayout make_pane_layout(
+            const DockPaneState& pane,
+            const DockLayoutOptions& options,
+            const DockLayoutInput& input) const noexcept;
+        void activate_pane(
+            DockLayoutState& state,
+            DockPaneState* panes,
+            std::uint32_t pane_count,
+            std::uint32_t pane_id) const noexcept;
+        void normalize(
+            DockLayoutState& state,
+            DockPaneState* panes,
+            std::uint32_t pane_count,
+            const DockLayoutOptions& options) const noexcept;
+        [[nodiscard]] DockLayoutResult update(
+            DockLayoutState& state,
+            DockPaneState* panes,
+            std::uint32_t pane_count,
+            const DockLayoutOptions& options,
+            const DockLayoutInput& input) const noexcept;
+    };
+
+    [[nodiscard]] const DockLayoutController& dock_layout_controller() noexcept;
+    [[nodiscard]] bool is_valid_dock_slot(DockSlot slot) noexcept;
+    [[nodiscard]] bool dock_pane_requests_context_window(const DockPaneState& pane) noexcept;
+    [[nodiscard]] DockPaneLayout make_dock_pane_layout(
         const DockPaneState& pane,
         const DockLayoutOptions& options,
         const DockLayoutInput& input) noexcept;

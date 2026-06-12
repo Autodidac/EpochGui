@@ -67,7 +67,22 @@ namespace epochnamespace::gui_lib
         bool clamped{};
     };
 
-    Rect place_popup(
+    class PopupLayoutController final : public LayoutController
+    {
+    public:
+        [[nodiscard]] std::string_view name() const noexcept override;
+        [[nodiscard]] Rect place(
+            const PopupOptions& options,
+            const PopupInput& input,
+            PopupPlacement* used_placement = nullptr,
+            bool* flipped = nullptr,
+            bool* clamped = nullptr) const noexcept;
+        void normalize(PopupState& state, const PopupOptions& options, const PopupInput& input) const noexcept;
+        [[nodiscard]] PopupLayout update(PopupState& state, const PopupOptions& options, const PopupInput& input) const noexcept;
+    };
+
+    [[nodiscard]] const PopupLayoutController& popup_layout_controller() noexcept;
+    [[nodiscard]] Rect place_popup(
         const PopupOptions& options,
         const PopupInput& input,
         PopupPlacement* used_placement = nullptr,
@@ -77,7 +92,7 @@ namespace epochnamespace::gui_lib
         PopupState& state,
         const PopupOptions& options,
         const PopupInput& input) noexcept;
-    PopupLayout update_popup(
+    [[nodiscard]] PopupLayout update_popup(
         PopupState& state,
         const PopupOptions& options,
         const PopupInput& input) noexcept;

@@ -1,7 +1,10 @@
-#include "epoch/gui/popup_layout.hpp"
+module;
 
 #include <algorithm>
 #include <cmath>
+#include <string_view>
+
+module epoch.gui;
 
 namespace epochnamespace::gui_lib
 {
@@ -272,5 +275,42 @@ namespace epochnamespace::gui_lib
         layout.closed = !state.open && was_open;
         layout.hovered = state.open && contains(layout.popup, input.mouse_position);
         return layout;
+    }
+
+    std::string_view PopupLayoutController::name() const noexcept
+    {
+        return "popup_layout";
+    }
+
+    Rect PopupLayoutController::place(
+        const PopupOptions& options,
+        const PopupInput& input,
+        PopupPlacement* used_placement,
+        bool* flipped,
+        bool* clamped) const noexcept
+    {
+        return place_popup(options, input, used_placement, flipped, clamped);
+    }
+
+    void PopupLayoutController::normalize(
+        PopupState& state,
+        const PopupOptions& options,
+        const PopupInput& input) const noexcept
+    {
+        normalize_popup(state, options, input);
+    }
+
+    PopupLayout PopupLayoutController::update(
+        PopupState& state,
+        const PopupOptions& options,
+        const PopupInput& input) const noexcept
+    {
+        return update_popup(state, options, input);
+    }
+
+    const PopupLayoutController& popup_layout_controller() noexcept
+    {
+        static const PopupLayoutController controller{};
+        return controller;
     }
 }

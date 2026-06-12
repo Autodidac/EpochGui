@@ -1,7 +1,10 @@
-#include "epoch/gui/dock_layout.hpp"
+module;
 
 #include <algorithm>
 #include <cmath>
+#include <string_view>
+
+module epoch.gui;
 
 namespace epochnamespace::gui_lib
 {
@@ -410,5 +413,62 @@ namespace epochnamespace::gui_lib
             || result.context_window_count != previous_context_count;
         result.changed = result.changed || result.focus_changed || result.context_windows_changed;
         return result;
+    }
+
+    std::string_view DockLayoutController::name() const noexcept
+    {
+        return "dock_layout";
+    }
+
+    bool DockLayoutController::is_valid_slot(DockSlot slot) const noexcept
+    {
+        return is_valid_dock_slot(slot);
+    }
+
+    bool DockLayoutController::pane_requests_context_window(const DockPaneState& pane) const noexcept
+    {
+        return dock_pane_requests_context_window(pane);
+    }
+
+    DockPaneLayout DockLayoutController::make_pane_layout(
+        const DockPaneState& pane,
+        const DockLayoutOptions& options,
+        const DockLayoutInput& input) const noexcept
+    {
+        return make_dock_pane_layout(pane, options, input);
+    }
+
+    void DockLayoutController::activate_pane(
+        DockLayoutState& state,
+        DockPaneState* panes,
+        std::uint32_t pane_count,
+        std::uint32_t pane_id) const noexcept
+    {
+        activate_dock_pane(state, panes, pane_count, pane_id);
+    }
+
+    void DockLayoutController::normalize(
+        DockLayoutState& state,
+        DockPaneState* panes,
+        std::uint32_t pane_count,
+        const DockLayoutOptions& options) const noexcept
+    {
+        normalize_dock_layout(state, panes, pane_count, options);
+    }
+
+    DockLayoutResult DockLayoutController::update(
+        DockLayoutState& state,
+        DockPaneState* panes,
+        std::uint32_t pane_count,
+        const DockLayoutOptions& options,
+        const DockLayoutInput& input) const noexcept
+    {
+        return update_dock_layout(state, panes, pane_count, options, input);
+    }
+
+    const DockLayoutController& dock_layout_controller() noexcept
+    {
+        static const DockLayoutController controller{};
+        return controller;
     }
 }

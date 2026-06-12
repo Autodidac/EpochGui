@@ -59,7 +59,7 @@ namespace epochnamespace::gui_lib
         bool has_range{};
     };
 
-    static constexpr std::uint32_t invalid_selectable_row_index = 0xffffffffU;
+    inline constexpr std::uint32_t invalid_selectable_row_index = 0xffffffffU;
 
     struct SelectableListLayoutOptions
     {
@@ -90,17 +90,35 @@ namespace epochnamespace::gui_lib
         bool selected{};
     };
 
-    SplitterLayout make_splitter_layout(const SplitterLayoutOptions& options) noexcept;
-    float splitter_fraction_from_point(const SplitterLayoutOptions& options, Vec2 point) noexcept;
-    bool splitter_hit_test(const SplitterLayout& layout, Vec2 point, float hit_padding = 0.0f) noexcept;
+    class LayoutPrimitiveController final : public LayoutController
+    {
+    public:
+        [[nodiscard]] std::string_view name() const noexcept override;
+        [[nodiscard]] SplitterLayout make_splitter(const SplitterLayoutOptions& options) const noexcept;
+        [[nodiscard]] float splitter_fraction_from(Vec2 point, const SplitterLayoutOptions& options) const noexcept;
+        [[nodiscard]] bool splitter_hit_test(const SplitterLayout& layout, Vec2 point, float hit_padding = 0.0f) const noexcept;
+        [[nodiscard]] ProgressBarLayout make_progress_bar(const ProgressBarLayoutOptions& options) const noexcept;
+        [[nodiscard]] SelectableListVisibleRange visible_range(const SelectableListLayoutOptions& options) const noexcept;
+        [[nodiscard]] SelectableRowLayout make_selectable_row(
+            const SelectableListLayoutOptions& options,
+            std::uint32_t index,
+            Vec2 mouse_position,
+            bool selected = false) const noexcept;
+        [[nodiscard]] std::uint32_t selectable_row_at(const SelectableListLayoutOptions& options, Vec2 point) const noexcept;
+    };
 
-    ProgressBarLayout make_progress_bar_layout(const ProgressBarLayoutOptions& options) noexcept;
+    [[nodiscard]] const LayoutPrimitiveController& layout_primitive_controller() noexcept;
+    [[nodiscard]] SplitterLayout make_splitter_layout(const SplitterLayoutOptions& options) noexcept;
+    [[nodiscard]] float splitter_fraction_from_point(const SplitterLayoutOptions& options, Vec2 point) noexcept;
+    [[nodiscard]] bool splitter_hit_test(const SplitterLayout& layout, Vec2 point, float hit_padding = 0.0f) noexcept;
 
-    SelectableListVisibleRange selectable_list_visible_range(const SelectableListLayoutOptions& options) noexcept;
-    SelectableRowLayout make_selectable_row_layout(
+    [[nodiscard]] ProgressBarLayout make_progress_bar_layout(const ProgressBarLayoutOptions& options) noexcept;
+
+    [[nodiscard]] SelectableListVisibleRange selectable_list_visible_range(const SelectableListLayoutOptions& options) noexcept;
+    [[nodiscard]] SelectableRowLayout make_selectable_row_layout(
         const SelectableListLayoutOptions& options,
         std::uint32_t index,
         Vec2 mouse_position,
         bool selected = false) noexcept;
-    std::uint32_t selectable_row_index_at(const SelectableListLayoutOptions& options, Vec2 point) noexcept;
+    [[nodiscard]] std::uint32_t selectable_row_index_at(const SelectableListLayoutOptions& options, Vec2 point) noexcept;
 }

@@ -1,8 +1,10 @@
-#include "epoch/gui/floating_window.hpp"
-#include "epoch/gui/layout_primitives.hpp"
+module;
 
 #include <algorithm>
 #include <cmath>
+#include <string_view>
+
+module epoch.gui;
 
 namespace epochnamespace::gui_lib
 {
@@ -171,14 +173,6 @@ namespace epochnamespace::gui_lib
             return a.position.y + a.size.y >= b.position.y
                 && a.position.y <= b.position.y + b.size.y;
         }
-    }
-
-    bool contains(Rect rect, Vec2 point) noexcept
-    {
-        return point.x >= rect.position.x
-            && point.x <= rect.position.x + rect.size.x
-            && point.y >= rect.position.y
-            && point.y <= rect.position.y + rect.size.y;
     }
 
     void normalize_floating_window(FloatingWindowState& state, const FloatingWindowOptions& options) noexcept
@@ -489,5 +483,90 @@ namespace epochnamespace::gui_lib
             return invalid_selectable_row_index;
 
         return index;
+    }
+
+    std::string_view FloatingWindowController::name() const noexcept
+    {
+        return "floating_window";
+    }
+
+    void FloatingWindowController::normalize(
+        FloatingWindowState& state,
+        const FloatingWindowOptions& options) const noexcept
+    {
+        normalize_floating_window(state, options);
+    }
+
+    FloatingWindowLayout FloatingWindowController::update(
+        FloatingWindowState& state,
+        const FloatingWindowOptions& options,
+        const FloatingWindowInput& input) const noexcept
+    {
+        return update_floating_window(state, options, input);
+    }
+
+    const FloatingWindowController& floating_window_controller() noexcept
+    {
+        static const FloatingWindowController controller{};
+        return controller;
+    }
+
+    std::string_view LayoutPrimitiveController::name() const noexcept
+    {
+        return "layout_primitives";
+    }
+
+    SplitterLayout LayoutPrimitiveController::make_splitter(const SplitterLayoutOptions& options) const noexcept
+    {
+        return make_splitter_layout(options);
+    }
+
+    float LayoutPrimitiveController::splitter_fraction_from(
+        Vec2 point,
+        const SplitterLayoutOptions& options) const noexcept
+    {
+        return splitter_fraction_from_point(options, point);
+    }
+
+    bool LayoutPrimitiveController::splitter_hit_test(
+        const SplitterLayout& layout,
+        Vec2 point,
+        float hit_padding) const noexcept
+    {
+        return epochnamespace::gui_lib::splitter_hit_test(layout, point, hit_padding);
+    }
+
+    ProgressBarLayout LayoutPrimitiveController::make_progress_bar(
+        const ProgressBarLayoutOptions& options) const noexcept
+    {
+        return make_progress_bar_layout(options);
+    }
+
+    SelectableListVisibleRange LayoutPrimitiveController::visible_range(
+        const SelectableListLayoutOptions& options) const noexcept
+    {
+        return selectable_list_visible_range(options);
+    }
+
+    SelectableRowLayout LayoutPrimitiveController::make_selectable_row(
+        const SelectableListLayoutOptions& options,
+        std::uint32_t index,
+        Vec2 mouse_position,
+        bool selected) const noexcept
+    {
+        return make_selectable_row_layout(options, index, mouse_position, selected);
+    }
+
+    std::uint32_t LayoutPrimitiveController::selectable_row_at(
+        const SelectableListLayoutOptions& options,
+        Vec2 point) const noexcept
+    {
+        return selectable_row_index_at(options, point);
+    }
+
+    const LayoutPrimitiveController& layout_primitive_controller() noexcept
+    {
+        static const LayoutPrimitiveController controller{};
+        return controller;
     }
 }
