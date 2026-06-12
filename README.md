@@ -22,6 +22,7 @@ geometry and layout helpers exported by `epoch.gui`:
 - `epoch/gui/popup_layout.hpp` plus `src/gui/popup_layout.cpp`
 - `epoch/gui/dock_layout.hpp` plus `src/gui/dock_layout.cpp`
 - `epoch/gui/dockable_window.hpp` plus `src/gui/dockable_window.cpp`
+- `epoch/gui/panel_host.hpp` plus `src/gui/panel_host.cpp`
 - `epoch/gui/version.hpp` for the mirror name and `0.87.27` version constants
 
 The public namespace is `epochnamespace::gui_lib`. New integrations should
@@ -35,14 +36,18 @@ Compatibility headers remain for the current engine adapter while call sites
 move over. The implementation is module-owned and includes OOP controllers such
 as `FloatingWindowController`, `PopupLayoutController`,
 `LayoutPrimitiveController`, `DockLayoutController`, and
-`DockableWindowController`, all deriving from `LayoutController`. It does not
+`DockableWindowController`, and `PanelHostController`, all deriving from
+`LayoutController`. It does not
 include `editor.cpp`, `engine.cpp`, context sources, renderer backends, runtime
 assets, generated output, or `Engine/src/engine.gui.cpp`.
 
 Native popout windows, desktop docking hosts, editor tool panes, and routed
 contexts are integration-layer features outside this library. Games, mobile
 apps, console targets, and headless tools can link only the portable
-layout/state primitives and omit floating GUI host routes entirely.
+layout/state primitives and omit floating GUI host routes entirely. The panel
+host primitive records docked, floating, popup, or external host intent only;
+external hosts remain integration-layer responsibilities and this library does
+not create native windows.
 
 ## Supported Layouts
 
