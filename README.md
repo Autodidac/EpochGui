@@ -21,6 +21,7 @@ geometry and layout helpers exported by `epoch.gui`:
 - `epoch/gui/layout_primitives.hpp` backed by `src/gui/floating_window.cpp`
 - `epoch/gui/popup_layout.hpp` plus `src/gui/popup_layout.cpp`
 - `epoch/gui/dock_layout.hpp` plus `src/gui/dock_layout.cpp`
+- `epoch/gui/dockable_window.hpp` plus `src/gui/dockable_window.cpp`
 - `epoch/gui/version.hpp` for the mirror name and `0.87.15` version constants
 
 The public namespace is `epochnamespace::gui_lib`. New integrations should
@@ -33,10 +34,15 @@ import epoch.gui;
 Compatibility headers remain for the current engine adapter while call sites
 move over. The implementation is module-owned and includes OOP controllers such
 as `FloatingWindowController`, `PopupLayoutController`,
-`LayoutPrimitiveController`, and `DockLayoutController`, all deriving from
-`LayoutController`. It does not include `editor.cpp`, `engine.cpp`, context
-sources, renderer backends, runtime assets, generated output, or
-`Engine/src/engine.gui.cpp`.
+`LayoutPrimitiveController`, `DockLayoutController`, and
+`DockableWindowController`, all deriving from `LayoutController`. It does not
+include `editor.cpp`, `engine.cpp`, context sources, renderer backends, runtime
+assets, generated output, or `Engine/src/engine.gui.cpp`.
+
+Native popout windows, desktop docking hosts, editor tool panes, and routed
+contexts are integration-layer features outside this library. Games, mobile
+apps, console targets, and headless tools can link only the portable
+layout/state primitives and omit floating GUI host routes entirely.
 
 ## Supported Layouts
 
@@ -98,4 +104,10 @@ repository root after placing `include/epoch/gui` and `src/gui` beside it.
 - Keep this directory focused on standalone build metadata and mirror docs.
 - Promote new reusable controls through EpochEngine first, then update the
   mirror payload once the source and build evidence are real.
+- Promotion is mechanical and must move as one focused batch: update public
+  headers under `Engine/include/epoch/gui`, implementation files under
+  `Engine/src/gui`, `modules/epoch.gui.ixx`, in-tree CMake, standalone CMake,
+  MSVC `.vcxproj`/`.filters`, the engine adapter imports/wrappers, this README,
+  and the standalone `Autodidac/EpochGui` mirror. Build the in-tree and
+  standalone Debug/Release library targets before claiming the payload changed.
 - Carry the EpochEngine license terms into the standalone mirror root.

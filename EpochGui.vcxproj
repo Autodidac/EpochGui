@@ -144,9 +144,11 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="$(EpochGuiSourceRoot)include\epoch\gui\dockable_window.hpp" />
     <ClInclude Include="$(EpochGuiSourceRoot)include\epoch\gui\dock_layout.hpp" />
     <ClInclude Include="$(EpochGuiSourceRoot)include\epoch\gui\floating_window.hpp" />
     <ClInclude Include="$(EpochGuiSourceRoot)include\epoch\gui\layout_primitives.hpp" />
+    <ClInclude Include="$(EpochGuiSourceRoot)include\epoch\gui\panel_host.hpp" />
     <ClInclude Include="$(EpochGuiSourceRoot)include\epoch\gui\popup_layout.hpp" />
     <ClInclude Include="$(EpochGuiSourceRoot)include\epoch\gui\version.hpp" />
   </ItemGroup>
@@ -154,8 +156,10 @@
     <ClCompile Include="$(EpochGuiModuleRoot)modules\epoch.gui.ixx" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="$(EpochGuiSourceRoot)src\gui\dockable_window.cpp" />
     <ClCompile Include="$(EpochGuiSourceRoot)src\gui\dock_layout.cpp" />
     <ClCompile Include="$(EpochGuiSourceRoot)src\gui\floating_window.cpp" />
+    <ClCompile Include="$(EpochGuiSourceRoot)src\gui\panel_host.cpp" />
     <ClCompile Include="$(EpochGuiSourceRoot)src\gui\popup_layout.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

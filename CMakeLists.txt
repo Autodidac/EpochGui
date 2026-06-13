@@ -42,16 +42,20 @@ set(EPOCHGUI_MODULES
 )
 
 set(EPOCHGUI_PUBLIC_HEADERS
+    "${EPOCHGUI_SOURCE_ROOT}/include/epoch/gui/dockable_window.hpp"
     "${EPOCHGUI_SOURCE_ROOT}/include/epoch/gui/dock_layout.hpp"
     "${EPOCHGUI_SOURCE_ROOT}/include/epoch/gui/floating_window.hpp"
     "${EPOCHGUI_SOURCE_ROOT}/include/epoch/gui/layout_primitives.hpp"
+    "${EPOCHGUI_SOURCE_ROOT}/include/epoch/gui/panel_host.hpp"
     "${EPOCHGUI_SOURCE_ROOT}/include/epoch/gui/popup_layout.hpp"
     "${EPOCHGUI_SOURCE_ROOT}/include/epoch/gui/version.hpp"
 )
 
 set(EPOCHGUI_SOURCES
+    "${EPOCHGUI_SOURCE_ROOT}/src/gui/dockable_window.cpp"
     "${EPOCHGUI_SOURCE_ROOT}/src/gui/dock_layout.cpp"
     "${EPOCHGUI_SOURCE_ROOT}/src/gui/floating_window.cpp"
+    "${EPOCHGUI_SOURCE_ROOT}/src/gui/panel_host.cpp"
     "${EPOCHGUI_SOURCE_ROOT}/src/gui/popup_layout.cpp"
 )
 

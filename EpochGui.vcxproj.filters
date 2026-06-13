@@ -20,6 +20,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="$(EpochGuiSourceRoot)include\epoch\gui\dockable_window.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="$(EpochGuiSourceRoot)include\epoch\gui\dock_layout.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -27,6 +30,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(EpochGuiSourceRoot)include\epoch\gui\layout_primitives.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(EpochGuiSourceRoot)include\epoch\gui\panel_host.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(EpochGuiSourceRoot)include\epoch\gui\popup_layout.hpp">
@@ -37,10 +43,16 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="$(EpochGuiSourceRoot)src\gui\dockable_window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="$(EpochGuiSourceRoot)src\gui\dock_layout.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(EpochGuiSourceRoot)src\gui\floating_window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(EpochGuiSourceRoot)src\gui\panel_host.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(EpochGuiSourceRoot)src\gui\popup_layout.cpp">

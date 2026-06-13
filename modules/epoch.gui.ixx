@@ -443,4 +443,261 @@ export namespace epochnamespace::gui_lib
         std::uint32_t pane_count,
         const DockLayoutOptions& options,
         const DockLayoutInput& input) noexcept;
+
+    enum class DockableWindowMode : std::uint8_t
+    {
+        docked,
+        floating,
+        detached
+    };
+
+    enum class DockableWindowAction : std::uint8_t
+    {
+        none,
+        focus,
+        dock,
+        float_window,
+        detach,
+        close
+    };
+
+    struct DockableWindowHostState
+    {
+        std::uint32_t active_window_id{};
+        std::uint32_t next_focus_order{ 1 };
+        bool changed_this_frame{};
+    };
+
+    struct DockableWindowState
+    {
+        std::uint32_t id{};
+        DockableWindowMode mode{ DockableWindowMode::floating };
+        DockSlot dock_slot{ DockSlot::right };
+        FloatingWindowState floating{};
+        bool visible{ true };
+        bool initialized{};
+        bool active{};
+        bool detach_requested{};
+        bool close_requested{};
+        std::uint32_t focus_order{};
+    };
+
+    struct DockableWindowOptions
+    {
+        std::string_view title{};
+        Rect docked_frame{};
+        FloatingWindowOptions floating{};
+        Vec2 viewport_size{};
+        float title_bar_height{ 30.0f };
+        float content_padding{ 6.0f };
+        float action_button_width{ 72.0f };
+        float action_button_gap{ 4.0f };
+        bool allow_dock{ true };
+        bool allow_float{ true };
+        bool allow_detach{ true };
+        bool allow_close{ true };
+        DockSlot fallback_dock_slot{ DockSlot::right };
+    };
+
+    struct DockableWindowInput
+    {
+        Vec2 mouse_position{};
+        bool mouse_down{};
+        bool mouse_pressed{};
+        bool mouse_released{};
+        DockableWindowAction requested_action{ DockableWindowAction::none };
+        DockSlot requested_dock_slot{ DockSlot::none };
+    };
+
+    struct DockableWindowChrome
+    {
+        Rect frame{};
+        Rect title_bar{};
+        Rect content{};
+        Rect dock_button{};
+        Rect float_button{};
+        Rect detach_button{};
+        Rect close_button{};
+        bool visible{};
+        bool hovered{};
+        bool title_hovered{};
+        bool dock_hovered{};
+        bool float_hovered{};
+        bool detach_hovered{};
+        bool close_hovered{};
+        bool active{};
+    };
+
+    struct DockableWindowResult
+    {
+        DockableWindowChrome chrome{};
+        DockableWindowMode mode{ DockableWindowMode::floating };
+        DockableWindowAction action{ DockableWindowAction::none };
+        DockSlot dock_slot{ DockSlot::none };
+        bool changed{};
+        bool focused{};
+        bool dock_requested{};
+        bool float_requested{};
+        bool detach_requested{};
+        bool close_requested{};
+    };
+
+    class DockableWindowController final : public LayoutController
+    {
+    public:
+        [[nodiscard]] std::string_view name() const noexcept override;
+        void focus(
+            DockableWindowHostState& host,
+            DockableWindowState& state) const noexcept;
+        void normalize(
+            DockableWindowHostState& host,
+            DockableWindowState& state,
+            const DockableWindowOptions& options) const noexcept;
+        [[nodiscard]] DockableWindowChrome make_chrome(
+            const DockableWindowState& state,
+            const DockableWindowOptions& options,
+            const DockableWindowInput& input) const noexcept;
+        [[nodiscard]] DockableWindowResult update(
+            DockableWindowHostState& host,
+            DockableWindowState& state,
+            const DockableWindowOptions& options,
+            const DockableWindowInput& input) const noexcept;
+    };
+
+    [[nodiscard]] const DockableWindowController& dockable_window_controller() noexcept;
+    void focus_dockable_window(
+        DockableWindowHostState& host,
+        DockableWindowState& state) noexcept;
+    void normalize_dockable_window(
+        DockableWindowHostState& host,
+        DockableWindowState& state,
+        const DockableWindowOptions& options) noexcept;
+    [[nodiscard]] DockableWindowChrome make_dockable_window_chrome(
+        const DockableWindowState& state,
+        const DockableWindowOptions& options,
+        const DockableWindowInput& input) noexcept;
+    [[nodiscard]] DockableWindowResult update_dockable_window(
+        DockableWindowHostState& host,
+        DockableWindowState& state,
+        const DockableWindowOptions& options,
+        const DockableWindowInput& input) noexcept;
+
+    enum class PanelHostMode : std::uint8_t
+    {
+        docked,
+        floating,
+        popup,
+        external_host
+    };
+
+    enum class PanelHostAction : std::uint8_t
+    {
+        none,
+        focus,
+        dock,
+        float_panel,
+        show_popup,
+        request_external_host,
+        redock_from_external_host,
+        close
+    };
+
+    struct PanelHostState
+    {
+        std::uint32_t id{};
+        PanelHostMode mode{ PanelHostMode::docked };
+        DockSlot dock_slot{ DockSlot::right };
+        Rect docked_frame{};
+        FloatingWindowState floating{};
+        PopupState popup{};
+        Rect external_frame{};
+        bool visible{ true };
+        bool initialized{};
+        bool active{};
+        bool external_host_requested{};
+        bool external_host_active{};
+        std::uint64_t external_host_token{};
+        std::uint32_t focus_order{};
+    };
+
+    struct PanelHostOptions
+    {
+        std::string_view title{};
+        Rect docked_frame{};
+        FloatingWindowOptions floating{};
+        PopupOptions popup{};
+        Rect default_external_frame{};
+        DockSlot fallback_dock_slot{ DockSlot::right };
+        bool allow_dock{ true };
+        bool allow_float{ true };
+        bool allow_popup{ true };
+        bool allow_external_host{ true };
+        bool allow_close{ true };
+    };
+
+    struct PanelHostInput
+    {
+        DockableWindowHostState* focus_host{};
+        Vec2 mouse_position{};
+        bool mouse_down{};
+        bool mouse_pressed{};
+        bool mouse_released{};
+        PanelHostAction requested_action{ PanelHostAction::none };
+        DockSlot requested_dock_slot{ DockSlot::none };
+        std::uint64_t external_host_token{};
+        bool external_host_confirmed{};
+        bool external_host_closed{};
+        bool escape_pressed{};
+    };
+
+    struct PanelHostMetadata
+    {
+        std::uint32_t id{};
+        PanelHostMode mode{ PanelHostMode::docked };
+        DockSlot dock_slot{ DockSlot::none };
+        Rect frame{};
+        bool visible{};
+        bool active{};
+        bool wants_external_host{};
+        bool external_host_active{};
+        std::uint64_t external_host_token{};
+    };
+
+    struct PanelHostResult
+    {
+        PanelHostMetadata metadata{};
+        PanelHostAction action{ PanelHostAction::none };
+        bool changed{};
+        bool focus_changed{};
+        bool placement_changed{};
+        bool external_host_changed{};
+        bool close_requested{};
+    };
+
+    class PanelHostController final : public LayoutController
+    {
+    public:
+        [[nodiscard]] std::string_view name() const noexcept override;
+        void focus(PanelHostState& state, DockableWindowHostState* host = nullptr) const noexcept;
+        void normalize(PanelHostState& state, const PanelHostOptions& options) const noexcept;
+        [[nodiscard]] PanelHostMetadata metadata(const PanelHostState& state) const noexcept;
+        [[nodiscard]] PanelHostResult update(
+            PanelHostState& state,
+            const PanelHostOptions& options,
+            const PanelHostInput& input) const noexcept;
+    };
+
+    [[nodiscard]] const PanelHostController& panel_host_controller() noexcept;
+    void focus_panel_host(
+        PanelHostState& state,
+        DockableWindowHostState* host = nullptr) noexcept;
+    void normalize_panel_host(
+        PanelHostState& state,
+        const PanelHostOptions& options) noexcept;
+    [[nodiscard]] PanelHostMetadata panel_host_metadata(
+        const PanelHostState& state) noexcept;
+    [[nodiscard]] PanelHostResult update_panel_host(
+        PanelHostState& state,
+        const PanelHostOptions& options,
+        const PanelHostInput& input) noexcept;
 }
