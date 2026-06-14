@@ -85,7 +85,8 @@ The CMake target is `EpochGui`. Compatibility aliases are also provided as
 
 The CMake project version is `0.87.27`, matching the engine source line that
 adds OpenGL-first sampled render-surface preview proof while keeping reusable
-GUI layout state separate from editor/runtime context ownership.
+GUI layout state separate from editor/runtime context ownership and toolbar
+context selection.
 
 ## Visual Studio
 
