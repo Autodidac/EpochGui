@@ -8,12 +8,12 @@
 
 namespace epochnamespace::gui_lib
 {
-    enum class PanelHostIntent : std::uint8_t
+    enum class PanelHostMode : std::uint8_t
     {
         docked,
         floating,
         popup,
-        external
+        external_host
     };
 
     enum class PanelHostAction : std::uint8_t
@@ -22,87 +22,81 @@ namespace epochnamespace::gui_lib
         focus,
         dock,
         float_panel,
-        open_popup,
-        request_external,
+        show_popup,
+        request_external_host,
+        redock_from_external_host,
         close
     };
 
     struct PanelHostState
     {
         std::uint32_t id{};
-        PanelHostIntent intent{ PanelHostIntent::docked };
+        PanelHostMode mode{ PanelHostMode::docked };
         DockSlot dock_slot{ DockSlot::right };
-        DockableWindowState dockable{};
+        Rect docked_frame{};
+        FloatingWindowState floating{};
         PopupState popup{};
+        Rect external_frame{};
         bool visible{ true };
         bool initialized{};
         bool active{};
-        bool external_requested{};
-        bool close_requested{};
+        bool external_host_requested{};
+        bool external_host_active{};
+        std::uint64_t external_host_token{};
         std::uint32_t focus_order{};
-    };
-
-    struct PanelHostRootState
-    {
-        std::uint32_t active_panel_id{};
-        std::uint32_t next_focus_order{ 1 };
-        bool changed_this_frame{};
     };
 
     struct PanelHostOptions
     {
         std::string_view title{};
-        PanelHostIntent default_intent{ PanelHostIntent::docked };
-        DockSlot fallback_dock_slot{ DockSlot::right };
-        DockableWindowOptions dockable{};
+        Rect docked_frame{};
+        FloatingWindowOptions floating{};
         PopupOptions popup{};
+        Rect default_external_frame{};
+        DockSlot fallback_dock_slot{ DockSlot::right };
         bool allow_dock{ true };
         bool allow_float{ true };
         bool allow_popup{ true };
-        bool allow_external{ true };
+        bool allow_external_host{ true };
         bool allow_close{ true };
     };
 
     struct PanelHostInput
     {
+        DockableWindowHostState* focus_host{};
         Vec2 mouse_position{};
         bool mouse_down{};
         bool mouse_pressed{};
         bool mouse_released{};
-        bool owner_pressed{};
-        bool escape_pressed{};
         PanelHostAction requested_action{ PanelHostAction::none };
         DockSlot requested_dock_slot{ DockSlot::none };
+        std::uint64_t external_host_token{};
+        bool external_host_confirmed{};
+        bool external_host_closed{};
+        bool escape_pressed{};
     };
 
-    struct PanelHostLayout
+    struct PanelHostMetadata
     {
-        PanelHostIntent intent{ PanelHostIntent::docked };
+        std::uint32_t id{};
+        PanelHostMode mode{ PanelHostMode::docked };
+        DockSlot dock_slot{ DockSlot::none };
         Rect frame{};
-        Rect content{};
-        DockableWindowChrome dockable_chrome{};
-        PopupLayout popup{};
         bool visible{};
-        bool hovered{};
         bool active{};
-        bool docked{};
-        bool floating{};
-        bool popup_open{};
-        bool external_requested{};
+        bool wants_external_host{};
+        bool external_host_active{};
+        std::uint64_t external_host_token{};
     };
 
     struct PanelHostResult
     {
-        PanelHostLayout layout{};
-        PanelHostIntent intent{ PanelHostIntent::docked };
+        PanelHostMetadata metadata{};
         PanelHostAction action{ PanelHostAction::none };
-        DockSlot dock_slot{ DockSlot::none };
         bool changed{};
-        bool focused{};
-        bool dock_requested{};
-        bool float_requested{};
-        bool popup_requested{};
-        bool external_requested{};
+        bool focus_changed{};
+        bool placement_changed{};
+        bool external_host_changed{};
         bool close_requested{};
     };
 
@@ -110,44 +104,25 @@ namespace epochnamespace::gui_lib
     {
     public:
         [[nodiscard]] std::string_view name() const noexcept override;
-        [[nodiscard]] bool is_allowed_intent(
-            PanelHostIntent intent,
-            const PanelHostOptions& options) const noexcept;
-        void focus(
-            PanelHostRootState& root,
-            PanelHostState& state) const noexcept;
-        void normalize(
-            PanelHostRootState& root,
-            PanelHostState& state,
-            const PanelHostOptions& options) const noexcept;
-        [[nodiscard]] PanelHostLayout make_layout(
-            const PanelHostState& state,
-            const PanelHostOptions& options,
-            const PanelHostInput& input) const noexcept;
+        void focus(PanelHostState& state, DockableWindowHostState* host = nullptr) const noexcept;
+        void normalize(PanelHostState& state, const PanelHostOptions& options) const noexcept;
+        [[nodiscard]] PanelHostMetadata metadata(const PanelHostState& state) const noexcept;
         [[nodiscard]] PanelHostResult update(
-            PanelHostRootState& root,
             PanelHostState& state,
             const PanelHostOptions& options,
             const PanelHostInput& input) const noexcept;
     };
 
     [[nodiscard]] const PanelHostController& panel_host_controller() noexcept;
-    [[nodiscard]] bool is_allowed_panel_host_intent(
-        PanelHostIntent intent,
-        const PanelHostOptions& options) noexcept;
     void focus_panel_host(
-        PanelHostRootState& root,
-        PanelHostState& state) noexcept;
+        PanelHostState& state,
+        DockableWindowHostState* host = nullptr) noexcept;
     void normalize_panel_host(
-        PanelHostRootState& root,
         PanelHostState& state,
         const PanelHostOptions& options) noexcept;
-    [[nodiscard]] PanelHostLayout make_panel_host_layout(
-        const PanelHostState& state,
-        const PanelHostOptions& options,
-        const PanelHostInput& input) noexcept;
+    [[nodiscard]] PanelHostMetadata panel_host_metadata(
+        const PanelHostState& state) noexcept;
     [[nodiscard]] PanelHostResult update_panel_host(
-        PanelHostRootState& root,
         PanelHostState& state,
         const PanelHostOptions& options,
         const PanelHostInput& input) noexcept;
