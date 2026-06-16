@@ -39,6 +39,13 @@ as `FloatingWindowController`, `PopupLayoutController`,
 include `editor.cpp`, `engine.cpp`, context sources, renderer backends, runtime
 assets, generated output, or `Engine/src/engine.gui.cpp`.
 
+`LayoutPrimitiveController` currently covers splitters, progress bars,
+loading-screen layout, and selectable-list row math. The loading-screen layout
+is deliberately backend-neutral: the library returns panel/title/message/
+progress/status/action rectangles and progress fraction only. EpochEngine owns
+font rendering, theme colors, modal input capture, and update or launcher
+behavior above that layout.
+
 Native popout windows, desktop docking hosts, editor tool panes, and routed
 contexts are integration-layer features outside this library. Games, mobile
 apps, console targets, and headless tools can link only the portable
