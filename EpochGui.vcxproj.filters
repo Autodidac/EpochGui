@@ -18,45 +18,43 @@
     <ClCompile Include="$(EpochGuiModuleRoot)modules\epoch.gui.ixx">
       <Filter>Module Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\epochgui\dock_layout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\epochgui\dockable_window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\epochgui\floating_window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\epochgui\panel_host.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\epochgui\popup_layout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(EpochGuiSourceRoot)include\epoch\gui\dockable_window.hpp">
+    <ClInclude Include="..\..\include\gui\dock_layout.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(EpochGuiSourceRoot)include\epoch\gui\dock_layout.hpp">
+    <ClInclude Include="..\..\include\gui\dockable_window.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(EpochGuiSourceRoot)include\epoch\gui\floating_window.hpp">
+    <ClInclude Include="..\..\include\gui\floating_window.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(EpochGuiSourceRoot)include\epoch\gui\layout_primitives.hpp">
+    <ClInclude Include="..\..\include\gui\layout_primitives.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(EpochGuiSourceRoot)include\epoch\gui\panel_host.hpp">
+    <ClInclude Include="..\..\include\gui\panel_host.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(EpochGuiSourceRoot)include\epoch\gui\popup_layout.hpp">
+    <ClInclude Include="..\..\include\gui\popup_layout.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(EpochGuiSourceRoot)include\epoch\gui\version.hpp">
+    <ClInclude Include="..\..\include\gui\version.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\dockable_window.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\dock_layout.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\floating_window.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\panel_host.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\popup_layout.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>
