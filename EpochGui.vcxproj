@@ -70,6 +70,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros">
     <EpochGuiEnableRoundedRect Condition="'$(EpochGuiEnableRoundedRect)'==''">false</EpochGuiEnableRoundedRect>
+    <EpochGuiEnableInput Condition="'$(EpochGuiEnableInput)'==''">false</EpochGuiEnableInput>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnableManifest>false</VcpkgEnableManifest>
@@ -159,6 +160,11 @@
       <PreprocessorDefinitions>EPOCHGUI_ENABLE_ROUNDED_RECT=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(EpochGuiEnableInput)'=='true'">
+    <ClCompile>
+      <PreprocessorDefinitions>EPOCHGUI_ENABLE_INPUT=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(EpochGuiModuleRoot)modules\epoch.gui.ixx" />
     <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\dockable_window.cpp" />
@@ -171,6 +177,10 @@
   <ItemGroup Condition="'$(EpochGuiEnableRoundedRect)'=='true'">
     <ClCompile Include="$(EpochGuiModuleRoot)modules\epoch.gui.rounded_rect.ixx" />
     <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\rounded_rect.cpp" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(EpochGuiEnableInput)'=='true'">
+    <ClCompile Include="$(EpochGuiModuleRoot)modules\epoch.gui.input.ixx" />
+    <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\input.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(EpochGuiSourceRoot)include\gui\dockable_window.hpp" />
