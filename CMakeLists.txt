@@ -5,6 +5,7 @@ set(CMAKE_CXX_SCAN_FOR_MODULES ON)
 project(EpochGui VERSION 0.88.70 LANGUAGES CXX)
 
 option(EPOCHGUI_ENABLE_ROUNDED_RECT "Build the optional EpochGui rounded-rectangle geometry module." OFF)
+option(EPOCHGUI_ENABLE_INPUT "Build the optional EpochGui fallback input adapter module." OFF)
 
 set(EPOCHGUI_SOURCE_ROOT "" CACHE PATH "Directory containing include/gui and src/epochgui.")
 
@@ -71,6 +72,15 @@ if(EPOCHGUI_ENABLE_ROUNDED_RECT)
     )
 endif()
 
+if(EPOCHGUI_ENABLE_INPUT)
+    list(APPEND EPOCHGUI_MODULES
+        "${EPOCHGUI_MODULE_ROOT}/modules/epoch.gui.input.ixx"
+    )
+    list(APPEND EPOCHGUI_SOURCES
+        "${EPOCHGUI_SOURCE_ROOT}/src/epochgui/input.cpp"
+    )
+endif()
+
 add_library(EpochGui STATIC
     ${EPOCHGUI_PUBLIC_HEADERS}
     ${EPOCHGUI_SOURCES}
@@ -91,6 +101,7 @@ target_include_directories(EpochGui PUBLIC
 
 target_compile_definitions(EpochGui PUBLIC
     EPOCHGUI_ENABLE_ROUNDED_RECT=$<BOOL:${EPOCHGUI_ENABLE_ROUNDED_RECT}>
+    EPOCHGUI_ENABLE_INPUT=$<BOOL:${EPOCHGUI_ENABLE_INPUT}>
 )
 
 target_compile_features(EpochGui PUBLIC cxx_std_23)
@@ -137,5 +148,19 @@ if(BUILD_TESTING)
             CXX_EXTENSIONS OFF
         )
         add_test(NAME EpochGui.RoundedRect COMMAND EpochGuiRoundedRectTests)
+    endif()
+
+    if(EPOCHGUI_ENABLE_INPUT)
+        add_executable(EpochGuiInputTests
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/input_tests.cpp"
+        )
+        target_link_libraries(EpochGuiInputTests PRIVATE EpochGui)
+        target_compile_features(EpochGuiInputTests PRIVATE cxx_std_23)
+        set_target_properties(EpochGuiInputTests PROPERTIES
+            CXX_STANDARD 23
+            CXX_STANDARD_REQUIRED ON
+            CXX_EXTENSIONS OFF
+        )
+        add_test(NAME EpochGui.Input COMMAND EpochGuiInputTests)
     endif()
 endif()
