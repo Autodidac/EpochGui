@@ -45,8 +45,8 @@ creator's private Patreon source code or assets.
   - MSVC 19.38+
   - GCC 14+
   - Clang 18+
-- Vulkan SDK 1.3 with `glslc`
-- vcpkg with SDL3
+- vcpkg checkout with `vcpkg.exe`/`vcpkg` bootstrapped
+- Vulkan-capable graphics driver
 - Ninja 1.11+
 
 EpochGui is pinned to commit `347ad52e8fc27deb08dea97e56a9b6d8c0db3af2`
@@ -57,9 +57,13 @@ when this directory is built outside the EpochGui source tree. When built from
 
 ```bat
 set VCPKG_ROOT=C:\path\to\vcpkg
-set VULKAN_SDK=C:\VulkanSDK\1.4.xxx.x
 build_windows.bat
 ```
+
+`build_windows.bat` automatically uses `%USERPROFILE%\source\repos\vcpkg`
+when `VCPKG_ROOT` is not already set. CMake manifest mode installs SDL3,
+Vulkan Loader/Headers, and shaderc into the project-local `vcpkg_installed`
+directory. No Vulkan SDK or external `glslc.exe` is required.
 
 Or manually:
 
@@ -70,9 +74,6 @@ ctest --test-dir build/windows-release --output-on-failure
 ```
 
 ## Linux build
-
-Install the Vulkan loader/development packages required by your distribution,
-then:
 
 ```bash
 export VCPKG_ROOT="$HOME/vcpkg"
@@ -106,16 +107,17 @@ ctest --preset core-tests
 ## Architecture
 
 ```text
-src/math.hpp            allocation-free math primitives
-src/simulation.*        deterministic articulated PBD environment
-src/ppo_network.cpp     actor-critic network
-src/ppo_trainer.cpp     parallel PPO trainer
-src/canvas.cpp          triangle canvas
-src/renderer.*          SDL3/Vulkan 1.3 renderer
-src/app.*               EpochGui-driven editor/training/run application
-shaders/                minimal vertex-color Vulkan shaders
-assets/chicken.ppm      original bounded PPM UI asset
-tests/core_tests.cpp    deterministic headless validation
+src/math.hpp             allocation-free math primitives
+src/simulation.*         deterministic articulated PBD environment
+src/ppo_network.cpp      actor-critic network
+src/ppo_trainer.cpp      parallel PPO trainer
+src/canvas.cpp           triangle canvas
+src/renderer.*           SDL3/Vulkan 1.3 renderer
+src/app.*                EpochGui-driven editor/training/run application
+tools/shader_compiler.cpp vcpkg shaderc GLSL-to-SPIR-V build tool
+shaders/                 minimal vertex-color Vulkan shaders
+assets/chicken.ppm       original bounded PPM UI asset
+tests/core_tests.cpp     deterministic headless validation
 ```
 
 EpochGui remains renderer-neutral. EpochRunner consumes its reusable layout,
