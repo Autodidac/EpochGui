@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.28)
 
 set(CMAKE_CXX_SCAN_FOR_MODULES ON)
 
-project(EpochRunner VERSION 0.1.0 LANGUAGES CXX)
+project(EpochRunner VERSION 0.1.1 LANGUAGES CXX)
 
 option(EPOCHRUNNER_BUILD_APP "Build the SDL3/Vulkan EpochRunner application." ON)
 option(EPOCHRUNNER_BUILD_TESTS "Build deterministic core tests." ON)
@@ -67,18 +67,21 @@ if(EPOCHRUNNER_BUILD_APP)
 
     find_package(SDL3 CONFIG REQUIRED)
     find_package(Vulkan 1.3 REQUIRED)
+    find_package(unofficial-shaderc CONFIG REQUIRED)
 
-    if(Vulkan_GLSLC_EXECUTABLE)
-        set(EPOCHRUNNER_GLSLC "${Vulkan_GLSLC_EXECUTABLE}")
-    else()
-        find_program(EPOCHRUNNER_GLSLC
-            NAMES glslc glslc.exe
-            HINTS
-                "$ENV{VULKAN_SDK}/Bin"
-                "$ENV{VULKAN_SDK}/bin"
-            REQUIRED
-        )
-    endif()
+    add_executable(EpochRunnerShaderCompiler
+        tools/shader_compiler.cpp
+    )
+    target_link_libraries(EpochRunnerShaderCompiler PRIVATE
+        unofficial::shaderc::shaderc
+    )
+    target_compile_features(EpochRunnerShaderCompiler PRIVATE cxx_std_23)
+    set_target_properties(EpochRunnerShaderCompiler PROPERTIES
+        CXX_STANDARD 23
+        CXX_STANDARD_REQUIRED ON
+        CXX_EXTENSIONS OFF
+    )
+    epochrunner_enable_warnings(EpochRunnerShaderCompiler)
 
     set(EPOCHRUNNER_SHADER_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/shaders")
     set(EPOCHRUNNER_SHADER_OUTPUTS)
@@ -87,11 +90,12 @@ if(EPOCHRUNNER_BUILD_APP)
         set(output "${EPOCHRUNNER_SHADER_OUTPUT_DIR}/${shader}.spv")
         add_custom_command(
             OUTPUT "${output}"
-            COMMAND "${CMAKE_COMMAND}" -E make_directory "${EPOCHRUNNER_SHADER_OUTPUT_DIR}"
-            COMMAND "${EPOCHRUNNER_GLSLC}" --target-env=vulkan1.3 -O "${source}" -o "${output}"
-            DEPENDS "${source}"
+            COMMAND "$<TARGET_FILE:EpochRunnerShaderCompiler>" "${source}" "${output}"
+            DEPENDS
+                "${source}"
+                EpochRunnerShaderCompiler
             VERBATIM
-            COMMENT "Compiling ${shader}"
+            COMMENT "Compiling ${shader} with vcpkg shaderc"
         )
         list(APPEND EPOCHRUNNER_SHADER_OUTPUTS "${output}")
     endforeach()
