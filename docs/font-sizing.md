@@ -22,6 +22,6 @@ static_assert(metrics.pixel_height == 24.0F);
 
 `logical_height` is the intended glyph height in logical UI pixels. `dpi_scale` converts logical pixels to framebuffer pixels. A 16-pixel body style at 150% DPI therefore renders at 24 framebuffer pixels.
 
-The previous float-only module overload remains source-compatible and treats its value as the legacy bitmap-cell scale. It should not be used for new UI because values such as `1.4` produce a glyph only `9.8` pixels high.
+Font measurement accepts `FontSize` only. Callers must provide logical height and DPI explicitly so layout cannot silently fall back to bitmap-cell scaling.
 
 The consuming renderer should use the returned `cell_size`, `advance`, and `line_advance` values for geometry and measurement. UI layout, hit testing, caret placement, and rendering must all use the same metrics instance.

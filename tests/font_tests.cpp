@@ -9,10 +9,6 @@ int main()
     static_assert(font::pixel_on(glyph, 1, 0));
     static_assert(!font::pixel_on(glyph, 0, 0));
 
-    constexpr epochengine::gui_lib::Vec2 legacy = font::measure_text("AB\nC", 2.0F);
-    static_assert(legacy.x == 22.0F);
-    static_assert(legacy.y == 32.0F);
-
     constexpr font::FontSize size{ .logical_height = 14.0F, .dpi_scale = 1.5F };
     constexpr font::BitmapFontMetrics metrics = font::make_bitmap_font_metrics(
         size,

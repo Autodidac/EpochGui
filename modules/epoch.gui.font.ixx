@@ -16,7 +16,7 @@ export namespace epochengine::gui_lib::font
 
     using ::epochengine::gui_lib::font::default_glyph;
     using ::epochengine::gui_lib::font::make_bitmap_font_metrics;
-    using ::epochengine::gui_lib::font::measure_text_legacy_scale;
+    using ::epochengine::gui_lib::font::measure_text;
     using ::epochengine::gui_lib::font::pixel_on;
     using ::epochengine::gui_lib::font::resolved_pixel_height;
 
@@ -41,13 +41,4 @@ export namespace epochengine::gui_lib::font
         return { extent.width, extent.height };
     }
 
-    // Source-compatible module API. The float remains the old bitmap cell
-    // scale; new code should call measure_text_pixels with FontSize.
-    [[nodiscard]] constexpr Vec2 measure_text(
-        std::string_view text,
-        float legacy_cell_scale = 1.0F) noexcept
-    {
-        const TextExtent extent = measure_text_legacy_scale(text, legacy_cell_scale);
-        return { extent.width, extent.height };
-    }
 }
