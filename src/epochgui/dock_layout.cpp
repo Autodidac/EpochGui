@@ -3,6 +3,7 @@ module;
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <limits>
 #include <string_view>
 
 module epoch.gui;
@@ -186,6 +187,306 @@ namespace epochengine::gui_lib
             || slot == DockSlot::top
             || slot == DockSlot::bottom
             || slot == DockSlot::center;
+    }
+
+    DockGuideLayout make_dock_guide_layout(const DockGuideOptions& options) noexcept
+    {
+        DockGuideLayout layout{};
+        const Rect guideBounds = sane_rect(options.guide_bounds);
+        const float extent = (std::max)(
+            44.0f,
+            sane_or(options.guide_extent, 94.0f));
+        const float gap = (std::max)(
+            0.0f,
+            sane_or(options.guide_gap, 8.0f));
+        const Vec2 center{
+            guideBounds.position.x + guideBounds.size.x * 0.5f,
+            guideBounds.position.y + guideBounds.size.y * 0.5f
+        };
+
+        const auto append = [&](DockGuideTarget target, Vec2 position, Vec2 size, Rect preview)
+        {
+            if (layout.count >= 7U)
+                return;
+
+            DockGuide& guide = layout.guides[layout.count++];
+            guide.target = target;
+            guide.target_bounds = Rect{ position, size };
+            guide.preview_bounds = sane_rect(preview);
+            guide.hovered = contains(guide.target_bounds, options.pointer);
+            if (guide.hovered && layout.hovered_target == DockGuideTarget::none)
+            {
+                layout.hovered_target = target;
+                layout.hovered_preview = guide.preview_bounds;
+            }
+        };
+
+        const float leftX = center.x - extent - gap;
+        const float middleX = center.x - extent * 0.5f;
+        const float rightX = center.x + gap;
+        const float topY = center.y - extent * 1.5f - gap;
+        const float middleY = center.y - extent * 0.5f;
+        const float bottomY = center.y + extent * 0.5f + gap;
+        if (options.allow_side_tabs)
+        {
+            append(
+                DockGuideTarget::left_tabs,
+                { leftX, middleY },
+                { extent, extent },
+                options.left_tabs_preview);
+            append(
+                DockGuideTarget::right_tabs,
+                { rightX, middleY },
+                { extent, extent },
+                options.right_tabs_preview);
+        }
+        if (options.allow_float)
+        {
+            append(
+                DockGuideTarget::float_window,
+                { middleX, middleY },
+                { extent, extent },
+                options.floating_preview);
+        }
+        if (options.allow_bottom_tabs)
+        {
+            append(
+                DockGuideTarget::bottom_left_tabs,
+                { leftX, bottomY },
+                { extent, extent },
+                options.bottom_left_tabs_preview);
+            append(
+                DockGuideTarget::bottom_right_tabs,
+                { rightX, bottomY },
+                { extent, extent },
+                options.bottom_right_tabs_preview);
+        }
+        if (options.allow_contexts)
+        {
+            Vec2 leftContextPosition{ leftX, topY };
+            Vec2 rightContextPosition{ rightX, topY };
+            if (options.center_context_guides_in_previews)
+            {
+                const Rect leftPreview = sane_rect(options.left_context_preview);
+                const Rect rightPreview = sane_rect(options.right_context_preview);
+                leftContextPosition = {
+                    leftPreview.position.x + (leftPreview.size.x - extent) * 0.5f,
+                    leftPreview.position.y + (leftPreview.size.y - extent) * 0.5f
+                };
+                rightContextPosition = {
+                    rightPreview.position.x + (rightPreview.size.x - extent) * 0.5f,
+                    rightPreview.position.y + (rightPreview.size.y - extent) * 0.5f
+                };
+            }
+
+            append(
+                DockGuideTarget::left_context,
+                leftContextPosition,
+                { extent, extent },
+                options.left_context_preview);
+            append(
+                DockGuideTarget::right_context,
+                rightContextPosition,
+                { extent, extent },
+                options.right_context_preview);
+        }
+
+        return layout;
+    }
+
+    DockTabStripLayout make_dock_tab_strip_layout(
+        const DockTabStripOptions& options) noexcept
+    {
+        DockTabStripLayout layout{};
+        layout.cancelled = options.cancelled;
+        if (!options.drag_active || options.cancelled || !options.target_compatible
+            || options.source_group_id == 0U || options.target_group_id == 0U)
+        {
+            return layout;
+        }
+
+        const Rect strip = sane_rect(options.strip_bounds);
+        if (!contains(strip, options.pointer))
+            return layout;
+
+        const std::uint32_t count = (std::min)(options.tab_count, maximum_dock_tabs);
+        if (count > 0U && options.tab_bounds == nullptr)
+            return layout;
+
+        layout.target_hovered = true;
+        layout.direct_drop_available = true;
+        layout.suppress_outer_guides = true;
+
+        float insertionX = strip.position.x;
+        float bestDistance = (std::numeric_limits<float>::max)();
+        layout.insertion_index = 0U;
+        for (std::uint32_t index = 0U; index <= count; ++index)
+        {
+            float candidateX = strip.position.x;
+            if (count > 0U)
+            {
+                if (index == 0U)
+                    candidateX = options.tab_bounds[0U].position.x;
+                else if (index == count)
+                {
+                    const Rect& last = options.tab_bounds[count - 1U];
+                    candidateX = last.position.x + last.size.x;
+                }
+                else
+                {
+                    const Rect& previous = options.tab_bounds[index - 1U];
+                    const Rect& next = options.tab_bounds[index];
+                    const float previousEnd = previous.position.x + previous.size.x;
+                    candidateX = (previousEnd + next.position.x) * 0.5f;
+                }
+            }
+
+            const float distance = std::abs(options.pointer.x - candidateX);
+            if (distance < bestDistance)
+            {
+                bestDistance = distance;
+                insertionX = candidateX;
+                layout.insertion_index = index;
+            }
+        }
+
+        const float markerExtent = (std::max)(
+            1.0f, sane_or(options.marker_extent, 3.0f));
+        layout.insertion_marker = {
+            { insertionX - markerExtent * 0.5f, strip.position.y },
+            { markerExtent, strip.size.y }
+        };
+
+        const float ghostWidth = std::clamp(
+            sane_or(options.dragged_tab_size.x, 120.0f),
+            1.0f,
+            strip.size.x);
+        const float ghostHeight = std::clamp(
+            sane_or(options.dragged_tab_size.y, strip.size.y),
+            1.0f,
+            strip.size.y);
+        const float ghostX = std::clamp(
+            insertionX,
+            strip.position.x,
+            strip.position.x + strip.size.x - ghostWidth);
+        layout.insertion_ghost = {
+            { ghostX, strip.position.y + (strip.size.y - ghostHeight) * 0.5f },
+            { ghostWidth, ghostHeight }
+        };
+
+        if (options.source_group_id == options.target_group_id
+            && options.source_index < count)
+        {
+            const std::uint32_t finalIndex = layout.insertion_index > options.source_index
+                ? layout.insertion_index - 1U
+                : layout.insertion_index;
+            layout.no_op = finalIndex == options.source_index;
+        }
+        return layout;
+    }
+
+    DockTabMoveResult move_dock_tab(
+        DockTabGroup& source,
+        DockTabGroup& target,
+        std::uint32_t source_index,
+        std::uint32_t insertion_index) noexcept
+    {
+        DockTabMoveResult result{};
+        result.source_index = source_index;
+        if (source.id == 0U || target.id == 0U)
+        {
+            result.code = DockTabMoveCode::invalid_group;
+            return result;
+        }
+        if (source.count > maximum_dock_tabs || target.count > maximum_dock_tabs
+            || source_index >= source.count || source.tabs[source_index].id == 0U)
+        {
+            result.code = DockTabMoveCode::invalid_source;
+            return result;
+        }
+        if (insertion_index > target.count)
+        {
+            result.code = DockTabMoveCode::invalid_insertion;
+            return result;
+        }
+
+        const bool sameGroup = &source == &target;
+        const DockTabItem moving = source.tabs[source_index];
+        if (!sameGroup)
+        {
+            if (target.count >= maximum_dock_tabs)
+            {
+                result.code = DockTabMoveCode::target_full;
+                return result;
+            }
+            for (std::uint32_t index = 0U; index < target.count; ++index)
+            {
+                if (target.tabs[index].id == moving.id)
+                {
+                    result.code = DockTabMoveCode::duplicate_tab;
+                    return result;
+                }
+            }
+        }
+
+        std::uint32_t targetIndex = insertion_index;
+        if (sameGroup && targetIndex > source_index)
+            --targetIndex;
+        result.target_index = targetIndex;
+        if (sameGroup && targetIndex == source_index)
+        {
+            result.code = DockTabMoveCode::unchanged;
+            result.active_tab_id = moving.active ? moving.id : 0U;
+            return result;
+        }
+
+        const bool movingWasActive = moving.active;
+        for (std::uint32_t index = source_index; index + 1U < source.count; ++index)
+            source.tabs[index] = source.tabs[index + 1U];
+        --source.count;
+        source.tabs[source.count] = {};
+
+        if (sameGroup)
+        {
+            for (std::uint32_t index = source.count; index > targetIndex; --index)
+                source.tabs[index] = source.tabs[index - 1U];
+            source.tabs[targetIndex] = moving;
+            ++source.count;
+        }
+        else
+        {
+            for (std::uint32_t index = target.count; index > targetIndex; --index)
+                target.tabs[index] = target.tabs[index - 1U];
+            DockTabItem moved = moving;
+            moved.remembered_group_id = target.id;
+            if (movingWasActive)
+            {
+                for (std::uint32_t index = 0U; index < target.count; ++index)
+                    target.tabs[index].active = false;
+                moved.active = true;
+            }
+            target.tabs[targetIndex] = moved;
+            ++target.count;
+
+            if (movingWasActive && source.count > 0U)
+            {
+                const std::uint32_t fallback = (std::min)(source_index, source.count - 1U);
+                source.tabs[fallback].active = true;
+            }
+        }
+
+        const auto normalizeKeyboardOrder = [](DockTabGroup& group) noexcept
+        {
+            for (std::uint32_t index = 0U; index < group.count; ++index)
+                group.tabs[index].keyboard_order = index;
+        };
+        normalizeKeyboardOrder(source);
+        if (!sameGroup)
+            normalizeKeyboardOrder(target);
+
+        result.code = DockTabMoveCode::moved;
+        result.active_tab_id = movingWasActive ? moving.id : 0U;
+        return result;
     }
 
     bool dock_pane_requests_context_window(const DockPaneState& pane) noexcept

@@ -1,9 +1,11 @@
 module;
 
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <optional>
 #include <span>
 #include <string>
 #include <string_view>
@@ -16,8 +18,87 @@ export namespace epochengine::gui_lib
     inline constexpr std::string_view library_name = "EpochGui";
     inline constexpr int version_major = 0;
     inline constexpr int version_minor = 89;
-    inline constexpr int version_revision = 1;
-    inline constexpr std::string_view version_string = "0.89.01";
+    inline constexpr int version_revision = 32;
+    inline constexpr std::string_view version_string = "0.89.32";
+
+    enum class SemanticTone : std::uint8_t
+    {
+        neutral = 0,
+        muted,
+        info,
+        success,
+        warning,
+        error,
+        assistant,
+        engine
+    };
+
+    inline constexpr std::size_t semantic_tone_count = 8u;
+
+    struct Rgba8
+    {
+        std::uint8_t r{};
+        std::uint8_t g{};
+        std::uint8_t b{};
+        std::uint8_t a{255};
+    };
+
+    struct SemanticColors
+    {
+        Rgba8 background{};
+        Rgba8 accent{};
+    };
+
+    [[nodiscard]] constexpr std::string_view semantic_tone_name(
+        SemanticTone tone) noexcept
+    {
+        switch (tone)
+        {
+        case SemanticTone::muted: return "muted";
+        case SemanticTone::info: return "info";
+        case SemanticTone::success: return "success";
+        case SemanticTone::warning: return "warning";
+        case SemanticTone::error: return "error";
+        case SemanticTone::assistant: return "assistant";
+        case SemanticTone::engine: return "engine";
+        case SemanticTone::neutral:
+        default: return "neutral";
+        }
+    }
+
+    [[nodiscard]] constexpr SemanticColors semantic_colors(
+        SemanticTone tone,
+        bool light_surface) noexcept
+    {
+        if (light_surface)
+        {
+            switch (tone)
+            {
+            case SemanticTone::muted: return {{0xE5, 0xE7, 0xEB}, {0x6B, 0x72, 0x80}};
+            case SemanticTone::info: return {{0xDD, 0xEB, 0xFA}, {0x2F, 0x6F, 0xAB}};
+            case SemanticTone::success: return {{0xDD, 0xF3, 0xE6}, {0x2F, 0x8B, 0x57}};
+            case SemanticTone::warning: return {{0xF8, 0xEB, 0xCB}, {0xA7, 0x6B, 0x13}};
+            case SemanticTone::error: return {{0xF9, 0xDF, 0xE3}, {0xB9, 0x43, 0x50}};
+            case SemanticTone::assistant: return {{0xDD, 0xF1, 0xF3}, {0x26, 0x81, 0x8D}};
+            case SemanticTone::engine: return {{0xF6, 0xE5, 0xD6}, {0xB8, 0x63, 0x24}};
+            case SemanticTone::neutral:
+            default: return {{0xF1, 0xF3, 0xF5}, {0x7A, 0x82, 0x8C}};
+            }
+        }
+
+        switch (tone)
+        {
+        case SemanticTone::muted: return {{0x28, 0x2E, 0x38}, {0x6B, 0x72, 0x80}};
+        case SemanticTone::info: return {{0x17, 0x36, 0x5B}, {0x4D, 0xA3, 0xFF}};
+        case SemanticTone::success: return {{0x17, 0x3D, 0x2C}, {0x4A, 0xC7, 0x7B}};
+        case SemanticTone::warning: return {{0x4A, 0x35, 0x17}, {0xF4, 0xB9, 0x42}};
+        case SemanticTone::error: return {{0x4A, 0x1F, 0x26}, {0xF0, 0x6A, 0x75}};
+        case SemanticTone::assistant: return {{0x18, 0x3C, 0x46}, {0x55, 0xC8, 0xD8}};
+        case SemanticTone::engine: return {{0x48, 0x2D, 0x18}, {0xF0, 0x9A, 0x4A}};
+        case SemanticTone::neutral:
+        default: return {{0x24, 0x29, 0x31}, {0x7A, 0x82, 0x8C}};
+        }
+    }
 
     struct Vec2
     {
@@ -281,6 +362,842 @@ export namespace epochengine::gui_lib
         bool valid{};
     };
 
+    enum class ImageFitMode : std::uint8_t
+    {
+        stretch,
+        contain
+    };
+
+    struct ImageBoxLayoutOptions
+    {
+        Rect bounds{};
+        Vec2 source_extent{};
+        ImageFitMode fit{ImageFitMode::contain};
+        float padding{4.0f};
+        float caption_height{};
+    };
+
+    struct ImageBoxLayout
+    {
+        Rect frame{};
+        Rect viewport{};
+        Rect content{};
+        Rect caption{};
+        bool valid{};
+    };
+
+    struct TabButtonLayoutOptions
+    {
+        SegmentedControlLayoutOptions strip{};
+        float indicator_height{3.0f};
+        float close_extent{16.0f};
+        float label_padding{8.0f};
+    };
+
+    struct TabButtonLayout
+    {
+        Rect button{};
+        Rect label{};
+        Rect indicator{};
+        Rect close_button{};
+        bool active{};
+        bool closable{};
+        bool valid{};
+    };
+
+    struct ToolTabSizingPolicy
+    {
+        float minimum_width{ 96.0f };
+        float maximum_width{ 176.0f };
+        float horizontal_padding{ 10.0f };
+        float close_extent{ 18.0f };
+        float dirty_extent{ 8.0f };
+    };
+
+    struct ResponsiveTabStripOptions
+    {
+        std::span<const float> item_widths{};
+        std::size_t active_index{ (std::numeric_limits<std::size_t>::max)() };
+        float available_width{};
+        float gap{ 2.0f };
+        float overflow_width{ 120.0f };
+    };
+
+    struct ResponsiveTabWidthOptions
+    {
+        float requested_width{};
+        float measured_label_width{};
+        float minimum_hit_width{ 72.0f };
+        float horizontal_padding{ 24.0f };
+        float close_extent{};
+        float dirty_extent{};
+    };
+
+    [[nodiscard]] inline float resolve_responsive_tab_width(
+        const ResponsiveTabWidthOptions& options) noexcept
+    {
+        const float minimum = std::isfinite(options.minimum_hit_width)
+            ? (std::max)(1.0f, options.minimum_hit_width)
+            : 72.0f;
+        const float requested = std::isfinite(options.requested_width)
+            ? (std::max)(0.0f, options.requested_width)
+            : 0.0f;
+        const float label = std::isfinite(options.measured_label_width)
+            ? (std::max)(0.0f, options.measured_label_width)
+            : 0.0f;
+        const float padding = std::isfinite(options.horizontal_padding)
+            ? (std::max)(0.0f, options.horizontal_padding)
+            : 0.0f;
+        const float close = std::isfinite(options.close_extent)
+            ? (std::max)(0.0f, options.close_extent)
+            : 0.0f;
+        const float dirty = std::isfinite(options.dirty_extent)
+            ? (std::max)(0.0f, options.dirty_extent)
+            : 0.0f;
+        return (std::max)({
+            minimum,
+            requested,
+            label + padding + close + dirty});
+    }
+
+    struct ResponsiveTabStripLayout
+    {
+        std::vector<std::uint32_t> visible_indices{};
+        std::vector<std::uint32_t> overflow_indices{};
+        float visible_width{};
+        float overflow_width{};
+        bool overflowed{};
+        bool valid{};
+
+        [[nodiscard]] bool is_visible(std::size_t index) const noexcept
+        {
+            return std::find(visible_indices.begin(), visible_indices.end(), index)
+                != visible_indices.end();
+        }
+    };
+
+    enum class ResponsiveTabNavigationIntent : std::uint8_t
+    {
+        previous,
+        next,
+        first,
+        last
+    };
+
+    struct ResponsiveTabNavigationOptions
+    {
+        std::span<const std::uint8_t> enabled{};
+        std::size_t active_index{ (std::numeric_limits<std::size_t>::max)() };
+        ResponsiveTabNavigationIntent intent{ ResponsiveTabNavigationIntent::next };
+        bool wrap{ true };
+    };
+
+    [[nodiscard]] inline std::optional<std::size_t>
+        navigate_responsive_tab_strip(
+            const ResponsiveTabNavigationOptions& options) noexcept
+    {
+        if (options.enabled.empty())
+            return std::nullopt;
+        const auto enabled = [&](const std::size_t index) noexcept
+        {
+            return index < options.enabled.size() && options.enabled[index] != 0u;
+        };
+        if (options.intent == ResponsiveTabNavigationIntent::first)
+        {
+            for (std::size_t index = 0u; index < options.enabled.size(); ++index)
+                if (enabled(index)) return index;
+            return std::nullopt;
+        }
+        if (options.intent == ResponsiveTabNavigationIntent::last)
+        {
+            for (std::size_t index = options.enabled.size(); index > 0u; --index)
+                if (enabled(index - 1u)) return index - 1u;
+            return std::nullopt;
+        }
+
+        const bool forward =
+            options.intent == ResponsiveTabNavigationIntent::next;
+        std::size_t cursor = options.active_index < options.enabled.size()
+            ? options.active_index
+            : (forward ? options.enabled.size() - 1u : 0u);
+        for (std::size_t visited = 0u; visited < options.enabled.size(); ++visited)
+        {
+            if (forward)
+            {
+                if (cursor + 1u >= options.enabled.size())
+                {
+                    if (!options.wrap) return std::nullopt;
+                    cursor = 0u;
+                }
+                else ++cursor;
+            }
+            else if (cursor == 0u)
+            {
+                if (!options.wrap) return std::nullopt;
+                cursor = options.enabled.size() - 1u;
+            }
+            else --cursor;
+            if (enabled(cursor)) return cursor;
+        }
+        return std::nullopt;
+    }
+
+    struct BottomDockHeightOptions
+    {
+        float viewport_height{};
+        float toolbar_height{};
+        float splitter_height{ 7.0f };
+        float requested_fraction{ 0.24f };
+        float minimum_bottom_height{ 120.0f };
+        float minimum_center_height{ 240.0f };
+        float maximum_bottom_fraction{ 0.58f };
+        bool visible{ true };
+    };
+
+    struct BottomDockHeightLayout
+    {
+        float bottom_height{};
+        float center_height{};
+        float splitter_height{};
+        float normalized_fraction{};
+        bool visible{};
+        bool valid{};
+    };
+
+    [[nodiscard]] inline BottomDockHeightLayout
+        make_bottom_dock_height_layout(
+            const BottomDockHeightOptions& options) noexcept
+    {
+        BottomDockHeightLayout result{};
+        if (!std::isfinite(options.viewport_height)
+            || !std::isfinite(options.toolbar_height)
+            || !std::isfinite(options.splitter_height)
+            || !std::isfinite(options.requested_fraction)
+            || !std::isfinite(options.minimum_bottom_height)
+            || !std::isfinite(options.minimum_center_height)
+            || !std::isfinite(options.maximum_bottom_fraction)
+            || options.viewport_height < 0.0f
+            || options.toolbar_height < 0.0f)
+        {
+            return result;
+        }
+
+        result.visible = options.visible;
+        result.splitter_height = options.visible
+            ? (std::max)(0.0f, options.splitter_height)
+            : 0.0f;
+        const float available = (std::max)(
+            0.0f,
+            options.viewport_height - options.toolbar_height
+                - result.splitter_height);
+        if (!options.visible)
+        {
+            result.center_height = available;
+            result.valid = true;
+            return result;
+        }
+
+        const float minimumBottom = (std::min)(
+            available, (std::max)(0.0f, options.minimum_bottom_height));
+        const float minimumCenter = (std::min)(
+            available, (std::max)(0.0f, options.minimum_center_height));
+        const float maximumFraction = std::clamp(
+            options.maximum_bottom_fraction, 0.10f, 0.90f);
+        const float maximumBottom = (std::max)(
+            minimumBottom,
+            (std::min)(available - minimumCenter, available * maximumFraction));
+        const float requested = available * std::clamp(
+            options.requested_fraction, 0.0f, 1.0f);
+        result.bottom_height = std::clamp(
+            requested, minimumBottom, maximumBottom);
+        result.center_height = (std::max)(
+            0.0f, available - result.bottom_height);
+        result.normalized_fraction = available > 0.0f
+            ? result.bottom_height / available
+            : 0.0f;
+        result.valid = true;
+        return result;
+    }
+
+    inline constexpr float default_bottom_dock_column_fraction = 0.50f;
+
+    [[nodiscard]] inline float normalize_bottom_dock_column_fraction(float value) noexcept
+    {
+        // A valid saved/user fraction is an intent, not a pixel measurement.
+        // Do not guess whether an old value represented a historical default.
+        return std::clamp(std::isfinite(value) ? value
+            : default_bottom_dock_column_fraction, 0.25f, 0.75f);
+    }
+
+    struct BottomDockColumnOptions
+    {
+        float viewport_width{};
+        float splitter_width{ 7.0f };
+        float requested_fraction{ default_bottom_dock_column_fraction };
+        bool left_visible{ true };
+        bool right_visible{ true };
+    };
+
+    struct BottomDockColumnLayout
+    {
+        float left_width{};
+        float splitter_width{};
+        float right_offset{};
+        float right_width{};
+        float normalized_fraction{ default_bottom_dock_column_fraction };
+        bool split{};
+    };
+
+    [[nodiscard]] inline BottomDockColumnLayout make_bottom_dock_column_layout(
+        const BottomDockColumnOptions& options) noexcept
+    {
+        BottomDockColumnLayout result{};
+        result.normalized_fraction = normalize_bottom_dock_column_fraction(options.requested_fraction);
+        const float width = std::isfinite(options.viewport_width)
+            ? (std::max)(0.0f, options.viewport_width) : 0.0f;
+        result.split = options.left_visible && options.right_visible;
+        result.splitter_width = result.split && std::isfinite(options.splitter_width)
+            ? std::clamp(options.splitter_width, 0.0f, width) : 0.0f;
+        const float available = width - result.splitter_width;
+        result.left_width = options.left_visible
+            ? (result.split ? available * result.normalized_fraction : available) : 0.0f;
+        result.right_offset = result.split ? result.left_width + result.splitter_width : 0.0f;
+        result.right_width = options.right_visible
+            ? (result.split ? available - result.left_width : available) : 0.0f;
+        return result;
+    }
+
+    [[nodiscard]] inline float bottom_dock_column_fraction_from_pointer(
+        const BottomDockColumnOptions& options, float local_pointer_x,
+        float grabbed_splitter_offset) noexcept
+    {
+        const auto layout = make_bottom_dock_column_layout(options);
+        const float available = layout.left_width + layout.right_width;
+        if (!layout.split || available <= 0.0f || !std::isfinite(local_pointer_x)
+            || !std::isfinite(grabbed_splitter_offset))
+            return layout.normalized_fraction;
+        const float offset = std::clamp(grabbed_splitter_offset, 0.0f, layout.splitter_width);
+        return normalize_bottom_dock_column_fraction((local_pointer_x - offset) / available);
+    }
+
+    enum class ChromeDensity : std::uint8_t
+    {
+        full,
+        compact,
+        minimal
+    };
+
+    struct ChromeBarItemOptions
+    {
+        float preferred_width{ 72.0f };
+        float compact_width{ 52.0f };
+        std::uint16_t priority{};
+        bool pinned{};
+        bool overflowable{ true };
+    };
+
+    struct ChromeBarZoneLayout
+    {
+        std::vector<Rect> item_bounds{};
+        std::vector<std::uint32_t> visible_indices{};
+        std::vector<std::uint32_t> overflow_indices{};
+        Rect overflow_button{};
+        float occupied_width{};
+        bool used_compact_widths{};
+        bool overflowed{};
+
+        [[nodiscard]] bool is_visible(std::size_t index) const noexcept
+        {
+            return index < item_bounds.size()
+                && item_bounds[index].size.x > 0.0f
+                && item_bounds[index].size.y > 0.0f;
+        }
+    };
+
+    struct ChromeBarOptions
+    {
+        Rect bounds{};
+        std::span<const ChromeBarItemOptions> left_items{};
+        std::span<const ChromeBarItemOptions> center_items{};
+        std::span<const ChromeBarItemOptions> right_items{};
+        float item_gap{ 4.0f };
+        float zone_gap{ 12.0f };
+        float overflow_width{ 82.0f };
+        float horizontal_padding{ 12.0f };
+    };
+
+    struct ChromeBarLayout
+    {
+        Rect bounds{};
+        ChromeBarZoneLayout left{};
+        ChromeBarZoneLayout center{};
+        ChromeBarZoneLayout right{};
+        ChromeDensity density{ ChromeDensity::full };
+        bool valid{};
+    };
+
+    [[nodiscard]] inline std::string scoped_control_key(
+        std::string_view host,
+        std::string_view window,
+        std::string_view control)
+    {
+        std::string key{};
+        key.reserve(
+            host.size() + window.size() + control.size() + 32u);
+        key.append(host);
+        key.push_back('|');
+        key.append(std::to_string(window.size()));
+        key.push_back(':');
+        key.append(window);
+        key.push_back('|');
+        key.append(control);
+        return key;
+    }
+
+    [[nodiscard]] inline float preferred_tool_tab_width(
+        float measured_label_width,
+        bool closable,
+        bool dirty,
+        const ToolTabSizingPolicy& policy = {}) noexcept
+    {
+        const float minimumWidth = (std::max)(1.0f, policy.minimum_width);
+        const float maximumWidth = (std::max)(minimumWidth, policy.maximum_width);
+        const float labelWidth = std::isfinite(measured_label_width)
+            ? (std::max)(0.0f, measured_label_width)
+            : 0.0f;
+        const float padding = (std::max)(0.0f, policy.horizontal_padding);
+        const float closeExtent = closable
+            ? (std::max)(0.0f, policy.close_extent)
+            : 0.0f;
+        const float dirtyExtent = dirty
+            ? (std::max)(0.0f, policy.dirty_extent)
+            : 0.0f;
+        return (std::clamp)(
+            labelWidth + padding * 2.0f + closeExtent + dirtyExtent,
+            minimumWidth,
+            maximumWidth);
+    }
+
+    [[nodiscard]] inline ResponsiveTabStripLayout
+        make_responsive_tab_strip_layout(
+            const ResponsiveTabStripOptions& options)
+    {
+        ResponsiveTabStripLayout result{};
+        if (options.item_widths.empty())
+            return result;
+
+        std::vector<float> widths{};
+        widths.reserve(options.item_widths.size());
+        for (const float requested : options.item_widths)
+        {
+            widths.push_back(std::isfinite(requested)
+                ? (std::max)(1.0f, requested)
+                : 1.0f);
+        }
+
+        const float gap = std::isfinite(options.gap)
+            ? (std::max)(0.0f, options.gap)
+            : 0.0f;
+        const float available = std::isfinite(options.available_width)
+            ? (std::max)(0.0f, options.available_width)
+            : 0.0f;
+        float completeWidth{};
+        for (std::size_t index = 0; index < widths.size(); ++index)
+        {
+            if (index > 0u)
+                completeWidth += gap;
+            completeWidth += widths[index];
+        }
+
+        result.valid = true;
+        if (available <= 0.0f || completeWidth <= available)
+        {
+            result.visible_indices.reserve(widths.size());
+            for (std::size_t index = 0; index < widths.size(); ++index)
+                result.visible_indices.push_back(static_cast<std::uint32_t>(index));
+            result.visible_width = completeWidth;
+            return result;
+        }
+
+        result.overflowed = true;
+        const float requestedOverflow = std::isfinite(options.overflow_width)
+            ? (std::max)(1.0f, options.overflow_width)
+            : 120.0f;
+        result.overflow_width = (std::min)(available, requestedOverflow);
+        const float overflowGap = available > result.overflow_width ? gap : 0.0f;
+        const float visibleBudget = (std::max)(
+            0.0f,
+            available - result.overflow_width - overflowGap);
+
+        auto width_with = [&](std::size_t index) noexcept
+        {
+            return result.visible_width
+                + (result.visible_indices.empty() ? 0.0f : gap)
+                + widths[index];
+        };
+        for (std::size_t index = 0; index < widths.size(); ++index)
+        {
+            if (width_with(index) > visibleBudget)
+                break;
+            result.visible_width = width_with(index);
+            result.visible_indices.push_back(static_cast<std::uint32_t>(index));
+        }
+
+        const bool activeValid = options.active_index < widths.size();
+        if (activeValid && !result.is_visible(options.active_index)
+            && widths[options.active_index] <= visibleBudget)
+        {
+            while (!result.visible_indices.empty()
+                && width_with(options.active_index) > visibleBudget)
+            {
+                const std::size_t removed = result.visible_indices.back();
+                result.visible_indices.pop_back();
+                result.visible_width -= widths[removed];
+                if (!result.visible_indices.empty())
+                    result.visible_width -= gap;
+            }
+            if (width_with(options.active_index) <= visibleBudget)
+            {
+                result.visible_width = width_with(options.active_index);
+                result.visible_indices.push_back(
+                    static_cast<std::uint32_t>(options.active_index));
+                std::sort(
+                    result.visible_indices.begin(),
+                    result.visible_indices.end());
+            }
+        }
+
+        result.overflow_indices.reserve(
+            widths.size() - result.visible_indices.size());
+        for (std::size_t index = 0; index < widths.size(); ++index)
+        {
+            if (!result.is_visible(index))
+                result.overflow_indices.push_back(static_cast<std::uint32_t>(index));
+        }
+        return result;
+    }
+
+    [[nodiscard]] inline ChromeBarLayout make_chrome_bar_layout(
+        const ChromeBarOptions& options)
+    {
+        ChromeBarLayout result{};
+        const auto finite_rect = [](Rect rect) noexcept
+        {
+            return std::isfinite(rect.position.x)
+                && std::isfinite(rect.position.y)
+                && std::isfinite(rect.size.x)
+                && std::isfinite(rect.size.y)
+                && rect.size.x > 0.0f
+                && rect.size.y > 0.0f;
+        };
+        if (!finite_rect(options.bounds))
+            return result;
+
+        const float padding = std::isfinite(options.horizontal_padding)
+            ? (std::max)(0.0f, options.horizontal_padding)
+            : 0.0f;
+        const float gap = std::isfinite(options.item_gap)
+            ? (std::max)(0.0f, options.item_gap)
+            : 0.0f;
+        const float zoneGap = std::isfinite(options.zone_gap)
+            ? (std::max)(0.0f, options.zone_gap)
+            : 0.0f;
+        const float overflowWidth = std::isfinite(options.overflow_width)
+            ? (std::max)(1.0f, options.overflow_width)
+            : 82.0f;
+        result.bounds = options.bounds;
+
+        const float contentLeft = options.bounds.position.x + padding;
+        const float contentRight = options.bounds.position.x
+            + options.bounds.size.x - padding;
+        const float contentWidth = contentRight - contentLeft;
+        if (contentWidth <= 0.0f)
+            return result;
+
+        struct PlannedZone
+        {
+            std::vector<float> widths{};
+            std::vector<std::uint32_t> visible{};
+            std::vector<std::uint32_t> overflow{};
+            float items_width{};
+            float overflow_width{};
+            float total_width{};
+            bool compact{};
+        };
+
+        const auto sane_width = [](float value, float fallback) noexcept
+        {
+            return std::isfinite(value)
+                ? (std::max)(1.0f, value)
+                : fallback;
+        };
+        const auto plan_zone = [&](
+            std::span<const ChromeBarItemOptions> items,
+            float requestedBudget) -> PlannedZone
+        {
+            PlannedZone plan{};
+            plan.widths.assign(items.size(), 0.0f);
+            const float budget = std::isfinite(requestedBudget)
+                ? (std::max)(0.0f, requestedBudget)
+                : 0.0f;
+            if (items.empty() || budget <= 0.0f)
+            {
+                for (std::size_t index = 0; index < items.size(); ++index)
+                {
+                    if (items[index].overflowable)
+                        plan.overflow.push_back(
+                            static_cast<std::uint32_t>(index));
+                }
+                if (!plan.overflow.empty())
+                {
+                    plan.overflow_width = (std::min)(budget, overflowWidth);
+                    plan.total_width = plan.overflow_width;
+                }
+                return plan;
+            }
+
+            const auto complete_width = [&](bool compact) noexcept
+            {
+                float width{};
+                for (std::size_t index = 0; index < items.size(); ++index)
+                {
+                    if (index > 0u)
+                        width += gap;
+                    const float preferred = sane_width(
+                        items[index].preferred_width, 72.0f);
+                    const float minimum = (std::min)(
+                        preferred,
+                        sane_width(items[index].compact_width, preferred));
+                    width += compact ? minimum : preferred;
+                }
+                return width;
+            };
+
+            const float preferredWidth = complete_width(false);
+            const float compactWidth = complete_width(true);
+            if (preferredWidth <= budget || compactWidth <= budget)
+            {
+                plan.compact = preferredWidth > budget;
+                plan.items_width = plan.compact
+                    ? compactWidth
+                    : preferredWidth;
+                plan.total_width = plan.items_width;
+                for (std::size_t index = 0; index < items.size(); ++index)
+                {
+                    const float preferred = sane_width(
+                        items[index].preferred_width, 72.0f);
+                    const float minimum = (std::min)(
+                        preferred,
+                        sane_width(items[index].compact_width, preferred));
+                    plan.widths[index] = plan.compact ? minimum : preferred;
+                    plan.visible.push_back(
+                        static_cast<std::uint32_t>(index));
+                }
+                return plan;
+            }
+
+            plan.compact = true;
+            std::vector<std::uint32_t> order{};
+            order.reserve(items.size());
+            for (std::size_t index = 0; index < items.size(); ++index)
+                order.push_back(static_cast<std::uint32_t>(index));
+            std::stable_sort(
+                order.begin(),
+                order.end(),
+                [&](std::uint32_t lhs, std::uint32_t rhs)
+                {
+                    if (items[lhs].pinned != items[rhs].pinned)
+                        return items[lhs].pinned;
+                    if (items[lhs].priority != items[rhs].priority)
+                        return items[lhs].priority < items[rhs].priority;
+                    return lhs < rhs;
+                });
+
+            const bool hasOverflowable = std::any_of(
+                items.begin(),
+                items.end(),
+                [](const ChromeBarItemOptions& item)
+                {
+                    return item.overflowable;
+                });
+            const float reservedOverflow = hasOverflowable
+                ? (std::min)(budget, overflowWidth)
+                : 0.0f;
+            const float selectionBudget = (std::max)(
+                0.0f,
+                budget - reservedOverflow
+                    - (reservedOverflow > 0.0f ? gap : 0.0f));
+            float selectedWidth{};
+            for (const std::uint32_t index : order)
+            {
+                const float preferred = sane_width(
+                    items[index].preferred_width, 72.0f);
+                const float minimum = (std::min)(
+                    preferred,
+                    sane_width(items[index].compact_width, preferred));
+                const float candidate = selectedWidth
+                    + (plan.visible.empty() ? 0.0f : gap)
+                    + minimum;
+                if (candidate <= selectionBudget)
+                {
+                    selectedWidth = candidate;
+                    plan.widths[index] = minimum;
+                    plan.visible.push_back(index);
+                }
+            }
+            std::sort(plan.visible.begin(), plan.visible.end());
+            for (std::size_t index = 0; index < items.size(); ++index)
+            {
+                if (std::find(
+                        plan.visible.begin(),
+                        plan.visible.end(),
+                        static_cast<std::uint32_t>(index))
+                    == plan.visible.end()
+                    && items[index].overflowable)
+                {
+                    plan.overflow.push_back(
+                        static_cast<std::uint32_t>(index));
+                }
+            }
+            plan.items_width = selectedWidth;
+            if (plan.overflow.empty())
+            {
+                plan.total_width = selectedWidth;
+            }
+            else
+            {
+                plan.overflow_width = reservedOverflow;
+                plan.total_width = selectedWidth
+                    + (selectedWidth > 0.0f && reservedOverflow > 0.0f
+                        ? gap
+                        : 0.0f)
+                    + reservedOverflow;
+            }
+            return plan;
+        };
+
+        const bool hasLeft = !options.left_items.empty();
+        const bool hasRight = !options.right_items.empty();
+        const float leftReserve = hasLeft
+            ? (std::min)(overflowWidth, contentWidth)
+            : 0.0f;
+        const float rightReserve = hasRight
+            ? (std::min)(overflowWidth, contentWidth)
+            : 0.0f;
+        const float centerBudget = (std::max)(
+            0.0f,
+            contentWidth - leftReserve - rightReserve
+                - (hasLeft ? zoneGap : 0.0f)
+                - (hasRight ? zoneGap : 0.0f));
+        const PlannedZone centerPlan = plan_zone(
+            options.center_items,
+            centerBudget);
+        const float centerX = contentLeft
+            + (std::max)(
+                0.0f,
+                (contentWidth - centerPlan.total_width) * 0.5f);
+        const float leftBudget = options.center_items.empty()
+            ? contentWidth * 0.55f
+            : (std::max)(0.0f, centerX - zoneGap - contentLeft);
+        const float rightStart = centerX + centerPlan.total_width;
+        const float rightBudget = options.center_items.empty()
+            ? (std::max)(0.0f, contentWidth - leftBudget - zoneGap)
+            : (std::max)(
+                0.0f,
+                contentRight - rightStart - zoneGap);
+        const PlannedZone leftPlan = plan_zone(
+            options.left_items,
+            leftBudget);
+        const PlannedZone rightPlan = plan_zone(
+            options.right_items,
+            rightBudget);
+
+        const auto place_zone = [&](
+            ChromeBarZoneLayout& target,
+            const PlannedZone& plan,
+            std::span<const ChromeBarItemOptions> items,
+            float x)
+        {
+            target.item_bounds.assign(items.size(), {});
+            target.visible_indices = plan.visible;
+            target.overflow_indices = plan.overflow;
+            target.occupied_width = plan.total_width;
+            target.used_compact_widths = plan.compact;
+            target.overflowed = !plan.overflow.empty();
+            float cursorX = x;
+            for (const std::uint32_t index : plan.visible)
+            {
+                target.item_bounds[index] = {
+                    { cursorX, options.bounds.position.y },
+                    { plan.widths[index], options.bounds.size.y }
+                };
+                cursorX += plan.widths[index] + gap;
+            }
+            if (plan.overflow_width > 0.0f)
+            {
+                cursorX = plan.visible.empty()
+                    ? x
+                    : x + plan.items_width + gap;
+                target.overflow_button = {
+                    { cursorX, options.bounds.position.y },
+                    { plan.overflow_width, options.bounds.size.y }
+                };
+            }
+        };
+
+        place_zone(
+            result.left,
+            leftPlan,
+            options.left_items,
+            contentLeft);
+        place_zone(
+            result.center,
+            centerPlan,
+            options.center_items,
+            centerX);
+        place_zone(
+            result.right,
+            rightPlan,
+            options.right_items,
+            contentRight - rightPlan.total_width);
+
+        const bool anyOverflow = result.left.overflowed
+            || result.center.overflowed
+            || result.right.overflowed;
+        const bool anyCompact = result.left.used_compact_widths
+            || result.center.used_compact_widths
+            || result.right.used_compact_widths;
+        result.density = anyOverflow
+            ? ChromeDensity::minimal
+            : anyCompact ? ChromeDensity::compact : ChromeDensity::full;
+        result.valid = true;
+        return result;
+    }
+
+    struct SliderLayoutOptions
+    {
+        Rect bounds{};
+        float minimum{};
+        float maximum{1.0f};
+        float value{};
+        float step{0.01f};
+        float horizontal_padding{4.0f};
+        float track_height{3.0f};
+        float thumb_width{5.0f};
+        float thumb_height{11.0f};
+    };
+
+    struct SliderLayout
+    {
+        Rect bounds{};
+        Rect track{};
+        Rect fill{};
+        Rect thumb{};
+        float value{};
+        float fraction{};
+        bool valid{};
+    };
+
     struct ToggleSwitchLayoutOptions
     {
         Rect bounds{};
@@ -362,6 +1279,192 @@ export namespace epochengine::gui_lib
             return invalid_selectable_row_index;
         }
 
+        [[nodiscard]] ImageBoxLayout make_image_box(
+            const ImageBoxLayoutOptions& options) const noexcept
+        {
+            const float width = options.bounds.size.x > 1.0f
+                ? options.bounds.size.x
+                : 1.0f;
+            const float height = options.bounds.size.y > 1.0f
+                ? options.bounds.size.y
+                : 1.0f;
+            const float maximumPadding = (std::min)(width, height) * 0.5f;
+            const float padding = options.padding > 0.0f
+                ? (std::min)(options.padding, maximumPadding)
+                : 0.0f;
+            const float innerWidth = (std::max)(1.0f, width - padding * 2.0f);
+            const float innerHeight = (std::max)(1.0f, height - padding * 2.0f);
+            const float captionHeight = options.caption_height > 0.0f
+                ? (std::min)(options.caption_height, innerHeight)
+                : 0.0f;
+            const float viewportHeight = (std::max)(1.0f, innerHeight - captionHeight);
+
+            ImageBoxLayout layout{};
+            layout.frame = Rect{options.bounds.position, {width, height}};
+            layout.viewport = Rect{
+                {options.bounds.position.x + padding, options.bounds.position.y + padding},
+                {innerWidth, viewportHeight}};
+            if (captionHeight > 0.0f)
+            {
+                layout.caption = Rect{
+                    {options.bounds.position.x + padding,
+                     options.bounds.position.y + height - padding - captionHeight},
+                    {innerWidth, captionHeight}};
+            }
+
+            const float sourceWidth = options.source_extent.x > 0.0f
+                ? options.source_extent.x
+                : 0.0f;
+            const float sourceHeight = options.source_extent.y > 0.0f
+                ? options.source_extent.y
+                : 0.0f;
+            if (sourceWidth == 0.0f || sourceHeight == 0.0f)
+                return layout;
+
+            if (options.fit == ImageFitMode::stretch)
+            {
+                layout.content = layout.viewport;
+            }
+            else
+            {
+                const float scale = (std::min)(
+                    layout.viewport.size.x / sourceWidth,
+                    layout.viewport.size.y / sourceHeight);
+                const Vec2 contentSize{sourceWidth * scale, sourceHeight * scale};
+                layout.content = Rect{
+                    {layout.viewport.position.x
+                        + (layout.viewport.size.x - contentSize.x) * 0.5f,
+                     layout.viewport.position.y
+                        + (layout.viewport.size.y - contentSize.y) * 0.5f},
+                    contentSize};
+            }
+            layout.valid = true;
+            return layout;
+        }
+
+        [[nodiscard]] TabButtonLayout make_tab_button(
+            const TabButtonLayoutOptions& options,
+            std::uint32_t index,
+            bool active,
+            bool closable) const noexcept
+        {
+            const Rect button = segmented_item(options.strip, index);
+            if (button.size.x <= 0.0f || button.size.y <= 0.0f)
+                return {};
+
+            const float indicatorHeight = (std::min)(
+                (std::max)(1.0f, options.indicator_height),
+                button.size.y);
+            const float padding = (std::max)(0.0f, options.label_padding);
+            const float closeExtent = closable
+                ? (std::min)((std::max)(8.0f, options.close_extent), button.size.y)
+                : 0.0f;
+            const float labelWidth = (std::max)(
+                1.0f,
+                button.size.x - padding * 2.0f - closeExtent);
+
+            TabButtonLayout layout{};
+            layout.button = button;
+            layout.label = Rect{
+                {button.position.x + padding, button.position.y},
+                {labelWidth, button.size.y - indicatorHeight}};
+            layout.indicator = Rect{
+                {button.position.x, button.position.y + button.size.y - indicatorHeight},
+                {button.size.x, indicatorHeight}};
+            if (closable)
+            {
+                layout.close_button = Rect{
+                    {button.position.x + button.size.x - closeExtent,
+                     button.position.y + (button.size.y - closeExtent) * 0.5f},
+                    {closeExtent, closeExtent}};
+            }
+            layout.active = active;
+            layout.closable = closable;
+            layout.valid = true;
+            return layout;
+        }
+
+        [[nodiscard]] SliderLayout make_slider(
+            const SliderLayoutOptions& options) const noexcept
+        {
+            SliderLayout layout{};
+            layout.bounds = options.bounds;
+            if (!std::isfinite(options.bounds.position.x)
+                || !std::isfinite(options.bounds.position.y)
+                || !std::isfinite(options.bounds.size.x)
+                || !std::isfinite(options.bounds.size.y)
+                || !std::isfinite(options.minimum)
+                || !std::isfinite(options.maximum)
+                || !std::isfinite(options.value)
+                || !std::isfinite(options.step)
+                || options.bounds.size.x < 1.0f
+                || options.bounds.size.y < 1.0f
+                || options.maximum <= options.minimum
+                || options.step <= 0.0f)
+            {
+                return layout;
+            }
+
+            const float padding = (std::clamp)(
+                options.horizontal_padding,
+                0.0f,
+                options.bounds.size.x * 0.5f);
+            const float trackWidth = (std::max)(
+                0.0f, options.bounds.size.x - padding * 2.0f);
+            const float trackHeight = (std::clamp)(
+                options.track_height, 1.0f, options.bounds.size.y);
+            const float thumbWidth = (std::clamp)(
+                options.thumb_width, 1.0f, options.bounds.size.x);
+            const float thumbHeight = (std::clamp)(
+                options.thumb_height, 1.0f, options.bounds.size.y);
+            layout.value = (std::clamp)(
+                options.value, options.minimum, options.maximum);
+            layout.fraction = (layout.value - options.minimum)
+                / (options.maximum - options.minimum);
+            layout.track = {
+                {options.bounds.position.x + padding,
+                 options.bounds.position.y + options.bounds.size.y
+                    - trackHeight},
+                {trackWidth, trackHeight}};
+            layout.fill = layout.track;
+            layout.fill.size.x = trackWidth * layout.fraction;
+            const float thumbTravel = (std::max)(
+                0.0f, trackWidth - thumbWidth);
+            layout.thumb = {
+                {layout.track.position.x + thumbTravel * layout.fraction,
+                 options.bounds.position.y + options.bounds.size.y
+                    - thumbHeight},
+                {thumbWidth, thumbHeight}};
+            layout.valid = true;
+            return layout;
+        }
+
+        [[nodiscard]] float slider_value_at(
+            const SliderLayoutOptions& options,
+            float horizontal_position) const noexcept
+        {
+            const SliderLayout layout = make_slider(options);
+            if (!layout.valid || layout.track.size.x <= 0.0f
+                || !std::isfinite(horizontal_position))
+            {
+                return options.value;
+            }
+
+            const float fraction = (std::clamp)(
+                (horizontal_position - layout.track.position.x)
+                    / layout.track.size.x,
+                0.0f,
+                1.0f);
+            const float raw = options.minimum
+                + (options.maximum - options.minimum) * fraction;
+            const float steps = std::round(
+                (raw - options.minimum) / options.step);
+            return (std::clamp)(
+                options.minimum + steps * options.step,
+                options.minimum,
+                options.maximum);
+        }
+
         [[nodiscard]] ToggleSwitchLayout make_toggle_switch(
             const ToggleSwitchLayoutOptions& options) const noexcept
         {
@@ -417,12 +1520,671 @@ export namespace epochengine::gui_lib
         return selection_control_controller().segmented_item_at(options, point);
     }
 
+    [[nodiscard]] inline ImageBoxLayout make_image_box_layout(
+        const ImageBoxLayoutOptions& options) noexcept
+    {
+        return selection_control_controller().make_image_box(options);
+    }
+
+    [[nodiscard]] inline TabButtonLayout make_tab_button_layout(
+        const TabButtonLayoutOptions& options,
+        std::uint32_t index,
+        bool active = false,
+        bool closable = false) noexcept
+    {
+        return selection_control_controller().make_tab_button(
+            options, index, active, closable);
+    }
+
+    [[nodiscard]] inline SliderLayout make_slider_layout(
+        const SliderLayoutOptions& options) noexcept
+    {
+        return selection_control_controller().make_slider(options);
+    }
+
+    [[nodiscard]] inline float slider_value_from_position(
+        const SliderLayoutOptions& options,
+        float horizontal_position) noexcept
+    {
+        return selection_control_controller().slider_value_at(
+            options, horizontal_position);
+    }
+
     [[nodiscard]] inline ToggleSwitchLayout make_toggle_switch_layout(
         const ToggleSwitchLayoutOptions& options) noexcept
     {
         return selection_control_controller().make_toggle_switch(options);
     }
 
+    inline constexpr std::size_t asset_grid_maximum_items = 4096;
+    inline constexpr std::size_t asset_grid_maximum_visible_tiles = 512;
+    inline constexpr std::size_t asset_grid_maximum_filter_bytes = 96;
+    inline constexpr std::size_t asset_grid_maximum_searchable_field_bytes = 512;
+    inline constexpr float asset_grid_maximum_tile_extent = 16384.0f;
+    inline constexpr std::uint32_t invalid_asset_grid_source_index = 0xffffffffU;
+
+    struct AssetGridItemId
+    {
+        std::uint64_t value{};
+
+        [[nodiscard]] explicit operator bool() const noexcept
+        {
+            return value != 0;
+        }
+
+        friend bool operator==(AssetGridItemId, AssetGridItemId) noexcept = default;
+    };
+
+    enum class AssetGridItemKind : std::uint8_t
+    {
+        generic,
+        folder,
+        image,
+        texture,
+        material,
+        model,
+        audio,
+        scene,
+        document
+    };
+
+    enum class AssetGridActivationRole : std::uint8_t
+    {
+        none,
+        invoke,
+        open_in_tab
+    };
+
+    struct AssetGridImageMetadata
+    {
+        std::uint64_t content_key{};
+        std::uint32_t pixel_width{};
+        std::uint32_t pixel_height{};
+        ImageFitMode fit{ImageFitMode::contain};
+        bool has_alpha{};
+    };
+
+    struct AssetGridItem
+    {
+        AssetGridItemId id{};
+        std::string_view label{};
+        std::string_view detail{};
+        std::string_view search_terms{};
+        AssetGridItemKind kind{AssetGridItemKind::generic};
+        AssetGridActivationRole activation{AssetGridActivationRole::open_in_tab};
+        std::optional<AssetGridImageMetadata> image{};
+        bool enabled{true};
+    };
+
+    struct AssetGridFilterOptions
+    {
+        std::string_view query{};
+        std::size_t maximum_results{asset_grid_maximum_items};
+        bool include_disabled{true};
+    };
+
+    struct AssetGridFilterResult
+    {
+        std::vector<std::uint32_t> source_indices{};
+        std::size_t inspected_count{};
+        std::size_t matched_count{};
+        std::size_t invalid_id_count{};
+        std::size_t duplicate_id_count{};
+        bool source_truncated{};
+        bool results_truncated{};
+        bool query_truncated{};
+    };
+
+    struct AssetGridLayoutOptions
+    {
+        Rect viewport{};
+        Vec2 tile_extent{144.0f, 164.0f};
+        Vec2 gap{8.0f, 8.0f};
+        Vec2 padding{8.0f, 8.0f};
+        float image_height{108.0f};
+        float label_height{24.0f};
+        float detail_height{18.0f};
+        float scroll_offset{};
+        std::size_t maximum_visible_tiles{asset_grid_maximum_visible_tiles};
+        bool clear_selection_on_empty_press{true};
+    };
+
+    struct AssetGridState
+    {
+        std::optional<AssetGridItemId> selected_id{};
+    };
+
+    struct AssetGridInput
+    {
+        Vec2 pointer_position{};
+        bool pointer_pressed{};
+        bool pointer_activated{};
+        bool context_requested{};
+        bool activate_selected{};
+        bool clear_selection{};
+        bool pointer_present{};
+        std::optional<AssetGridItemId> requested_selection{};
+    };
+
+    struct AssetGridTileLayout
+    {
+        AssetGridItemId id{};
+        std::uint32_t source_index{invalid_asset_grid_source_index};
+        std::uint32_t filtered_index{invalid_asset_grid_source_index};
+        std::uint32_t row{};
+        std::uint32_t column{};
+        Rect tile{};
+        ImageBoxLayout image{};
+        Rect label{};
+        Rect detail{};
+        Rect selection_indicator{};
+        AssetGridItemKind kind{AssetGridItemKind::generic};
+        AssetGridActivationRole activation{AssetGridActivationRole::none};
+        bool has_image{};
+        bool image_metadata_valid{};
+        bool enabled{};
+        bool hovered{};
+        bool selected{};
+    };
+
+    struct AssetGridLayout
+    {
+        Rect viewport{};
+        Vec2 content_extent{};
+        std::vector<AssetGridTileLayout> visible_tiles{};
+        std::uint32_t column_count{};
+        std::uint32_t row_count{};
+        std::uint32_t item_count{};
+        std::uint32_t first_visible_row{};
+        std::uint32_t past_last_visible_row{};
+        float scroll_offset{};
+        float maximum_scroll_offset{};
+        bool valid{};
+        bool items_truncated{};
+        bool visible_tiles_truncated{};
+    };
+
+    struct AssetGridView
+    {
+        AssetGridFilterResult filter{};
+        AssetGridLayout layout{};
+    };
+
+    struct AssetGridUpdateResult
+    {
+        AssetGridView view{};
+        std::optional<AssetGridItemId> selected_id{};
+        std::optional<AssetGridItemId> activated_id{};
+        std::optional<AssetGridItemId> context_requested_id{};
+        AssetGridActivationRole activation{AssetGridActivationRole::none};
+        std::uint32_t selected_source_index{invalid_asset_grid_source_index};
+        std::uint32_t activated_source_index{invalid_asset_grid_source_index};
+        std::uint32_t context_requested_source_index{
+            invalid_asset_grid_source_index};
+        bool selection_changed{};
+        bool activation_requested{};
+        bool context_request_valid{};
+    };
+
+    [[nodiscard]] inline char asset_grid_fold_ascii(char value) noexcept
+    {
+        return value >= 'A' && value <= 'Z'
+            ? static_cast<char>(value + ('a' - 'A'))
+            : value;
+    }
+
+    [[nodiscard]] inline bool asset_grid_text_matches_filter(
+        std::string_view text,
+        std::string_view query) noexcept
+    {
+        const std::size_t querySize = (std::min)(
+            query.size(), asset_grid_maximum_filter_bytes);
+        if (querySize == 0)
+            return true;
+
+        const std::size_t textSize = (std::min)(
+            text.size(), asset_grid_maximum_searchable_field_bytes);
+        if (querySize > textSize)
+            return false;
+
+        for (std::size_t start = 0; start + querySize <= textSize; ++start)
+        {
+            bool matches = true;
+            for (std::size_t offset = 0; offset < querySize; ++offset)
+            {
+                if (asset_grid_fold_ascii(text[start + offset])
+                    != asset_grid_fold_ascii(query[offset]))
+                {
+                    matches = false;
+                    break;
+                }
+            }
+            if (matches)
+                return true;
+        }
+        return false;
+    }
+
+    [[nodiscard]] inline bool asset_grid_item_matches_filter(
+        const AssetGridItem& item,
+        std::string_view query) noexcept
+    {
+        return asset_grid_text_matches_filter(item.label, query)
+            || asset_grid_text_matches_filter(item.detail, query)
+            || asset_grid_text_matches_filter(item.search_terms, query);
+    }
+
+    class AssetGridController final : public LayoutController
+    {
+    public:
+        [[nodiscard]] std::string_view name() const noexcept override
+        {
+            return "Asset grid";
+        }
+
+        [[nodiscard]] AssetGridFilterResult filter(
+            std::span<const AssetGridItem> items,
+            const AssetGridFilterOptions& options) const
+        {
+            AssetGridFilterResult result{};
+            const std::size_t inspectCount = (std::min)(
+                items.size(), asset_grid_maximum_items);
+            const std::size_t resultLimit = (std::min)(
+                options.maximum_results, asset_grid_maximum_items);
+            const std::string_view query = options.query.substr(
+                0, (std::min)(options.query.size(), asset_grid_maximum_filter_bytes));
+
+            result.source_indices.reserve((std::min)(inspectCount, resultLimit));
+            result.inspected_count = inspectCount;
+            result.source_truncated = items.size() > inspectCount;
+            result.query_truncated = options.query.size() > query.size();
+
+            std::vector<AssetGridItemId> acceptedIds{};
+            acceptedIds.reserve(inspectCount);
+            for (std::size_t index = 0; index < inspectCount; ++index)
+            {
+                const AssetGridItem& item = items[index];
+                if (!item.id)
+                {
+                    ++result.invalid_id_count;
+                    continue;
+                }
+
+                if (std::find(acceptedIds.begin(), acceptedIds.end(), item.id)
+                    != acceptedIds.end())
+                {
+                    ++result.duplicate_id_count;
+                    continue;
+                }
+                acceptedIds.push_back(item.id);
+
+                if ((!options.include_disabled && !item.enabled)
+                    || !asset_grid_item_matches_filter(item, query))
+                {
+                    continue;
+                }
+
+                ++result.matched_count;
+                if (result.source_indices.size() < resultLimit)
+                    result.source_indices.push_back(static_cast<std::uint32_t>(index));
+                else
+                    result.results_truncated = true;
+            }
+            return result;
+        }
+
+        [[nodiscard]] AssetGridLayout layout(
+            std::span<const AssetGridItem> items,
+            const AssetGridFilterResult& filtered,
+            const AssetGridLayoutOptions& options,
+            const AssetGridState& state,
+            Vec2 pointerPosition,
+            bool pointerPresent) const
+        {
+            AssetGridLayout result{};
+            result.viewport = options.viewport;
+            if (!std::isfinite(options.viewport.position.x)
+                || !std::isfinite(options.viewport.position.y)
+                || !std::isfinite(options.viewport.size.x)
+                || !std::isfinite(options.viewport.size.y)
+                || !std::isfinite(options.tile_extent.x)
+                || !std::isfinite(options.tile_extent.y)
+                || !std::isfinite(options.gap.x)
+                || !std::isfinite(options.gap.y)
+                || !std::isfinite(options.padding.x)
+                || !std::isfinite(options.padding.y)
+                || options.viewport.size.x <= 0.0f
+                || options.viewport.size.y <= 0.0f
+                || options.tile_extent.x <= 0.0f
+                || options.tile_extent.y <= 0.0f
+                || options.tile_extent.x > asset_grid_maximum_tile_extent
+                || options.tile_extent.y > asset_grid_maximum_tile_extent)
+            {
+                return result;
+            }
+
+            const float gapX = (std::clamp)(
+                options.gap.x, 0.0f, asset_grid_maximum_tile_extent);
+            const float gapY = (std::clamp)(
+                options.gap.y, 0.0f, asset_grid_maximum_tile_extent);
+            const float paddingX = (std::clamp)(
+                options.padding.x, 0.0f, options.viewport.size.x * 0.5f);
+            const float paddingY = (std::clamp)(
+                options.padding.y, 0.0f, options.viewport.size.y * 0.5f);
+            const float availableWidth = (std::max)(
+                0.0f, options.viewport.size.x - paddingX * 2.0f);
+            const float columnStride = options.tile_extent.x + gapX;
+            const float rowStride = options.tile_extent.y + gapY;
+            const float requestedColumns = (availableWidth + gapX) / columnStride;
+            const std::uint32_t columns = static_cast<std::uint32_t>(
+                (std::clamp)(requestedColumns, 1.0f, 512.0f));
+            const std::size_t itemCount = (std::min)(
+                filtered.source_indices.size(), asset_grid_maximum_items);
+            const std::uint32_t rows = itemCount == 0
+                ? 0U
+                : static_cast<std::uint32_t>((itemCount + columns - 1U) / columns);
+            const float contentHeight = paddingY * 2.0f
+                + (rows == 0 ? 0.0f
+                    : static_cast<float>(rows) * options.tile_extent.y
+                        + static_cast<float>(rows - 1U) * gapY);
+            const float contentWidth = paddingX * 2.0f
+                + static_cast<float>(columns) * options.tile_extent.x
+                + static_cast<float>(columns - 1U) * gapX;
+            const float maximumScroll = (std::max)(
+                0.0f, contentHeight - options.viewport.size.y);
+            const float scroll = std::isfinite(options.scroll_offset)
+                ? (std::clamp)(options.scroll_offset, 0.0f, maximumScroll)
+                : 0.0f;
+            const std::uint32_t firstRow = rows == 0
+                ? 0U
+                : (std::min)(
+                    rows,
+                    static_cast<std::uint32_t>(
+                        (std::max)(0.0f, scroll - paddingY) / rowStride));
+            const float visibleBottom = scroll + options.viewport.size.y;
+            const std::uint32_t pastLastRow = rows == 0
+                ? 0U
+                : (std::min)(
+                    rows,
+                    static_cast<std::uint32_t>(
+                        ((std::max)(0.0f, visibleBottom - paddingY) / rowStride) + 1.0f));
+            const std::size_t visibleLimit = (std::min)(
+                options.maximum_visible_tiles, asset_grid_maximum_visible_tiles);
+
+            result.content_extent = {contentWidth, contentHeight};
+            result.column_count = columns;
+            result.row_count = rows;
+            result.item_count = static_cast<std::uint32_t>(itemCount);
+            result.first_visible_row = firstRow;
+            result.past_last_visible_row = pastLastRow;
+            result.scroll_offset = scroll;
+            result.maximum_scroll_offset = maximumScroll;
+            result.valid = true;
+            result.items_truncated =
+                filtered.source_indices.size() > itemCount;
+            result.visible_tiles.reserve((std::min)(itemCount, visibleLimit));
+
+            for (std::uint32_t row = firstRow; row < pastLastRow; ++row)
+            {
+                for (std::uint32_t column = 0; column < columns; ++column)
+                {
+                    const std::size_t filteredIndex =
+                        static_cast<std::size_t>(row) * columns + column;
+                    if (filteredIndex >= itemCount)
+                        break;
+                    if (result.visible_tiles.size() >= visibleLimit)
+                    {
+                        result.visible_tiles_truncated = true;
+                        return result;
+                    }
+
+                    const std::uint32_t sourceIndex = filtered.source_indices[filteredIndex];
+                    if (sourceIndex >= items.size())
+                        continue;
+                    const AssetGridItem& item = items[sourceIndex];
+                    const Rect tile{
+                        {options.viewport.position.x + paddingX
+                            + static_cast<float>(column) * columnStride,
+                         options.viewport.position.y + paddingY
+                            + static_cast<float>(row) * rowStride - scroll},
+                        options.tile_extent};
+                    const float imageHeight = (std::clamp)(
+                        options.image_height, 0.0f, options.tile_extent.y);
+                    const float remainingHeight = (std::max)(
+                        0.0f, options.tile_extent.y - imageHeight);
+                    const float labelHeight = (std::clamp)(
+                        options.label_height, 0.0f, remainingHeight);
+                    const float detailHeight = (std::clamp)(
+                        options.detail_height, 0.0f, remainingHeight - labelHeight);
+
+                    AssetGridTileLayout tileLayout{};
+                    tileLayout.id = item.id;
+                    tileLayout.source_index = sourceIndex;
+                    tileLayout.filtered_index = static_cast<std::uint32_t>(filteredIndex);
+                    tileLayout.row = row;
+                    tileLayout.column = column;
+                    tileLayout.tile = tile;
+                    tileLayout.label = {
+                        {tile.position.x, tile.position.y + imageHeight},
+                        {tile.size.x, labelHeight}};
+                    tileLayout.detail = {
+                        {tile.position.x, tile.position.y + imageHeight + labelHeight},
+                        {tile.size.x, detailHeight}};
+                    tileLayout.selection_indicator = {
+                        {tile.position.x, tile.position.y + tile.size.y - 3.0f},
+                        {tile.size.x, 3.0f}};
+                    tileLayout.kind = item.kind;
+                    tileLayout.activation = item.activation;
+                    tileLayout.has_image = item.image.has_value();
+                    tileLayout.enabled = item.enabled;
+                    tileLayout.hovered = pointerPresent
+                        && item.enabled
+                        && contains(tile, pointerPosition);
+                    tileLayout.selected = state.selected_id.has_value()
+                        && state.selected_id.value() == item.id;
+                    Vec2 sourceExtent{};
+                    ImageFitMode imageFit = ImageFitMode::contain;
+                    if (item.image.has_value())
+                    {
+                        const AssetGridImageMetadata& metadata = item.image.value();
+                        tileLayout.image_metadata_valid = metadata.pixel_width > 0
+                            && metadata.pixel_height > 0;
+                        sourceExtent = {
+                            static_cast<float>(metadata.pixel_width),
+                            static_cast<float>(metadata.pixel_height)};
+                        imageFit = metadata.fit;
+                    }
+                    if (imageHeight > 0.0f)
+                    {
+                        tileLayout.image = make_image_box_layout({
+                            .bounds = {tile.position, {tile.size.x, imageHeight}},
+                            .source_extent = sourceExtent,
+                            .fit = imageFit,
+                            .padding = 4.0f});
+                    }
+                    result.visible_tiles.push_back(tileLayout);
+                }
+            }
+            return result;
+        }
+
+        [[nodiscard]] AssetGridUpdateResult update(
+            AssetGridState& state,
+            std::span<const AssetGridItem> items,
+            const AssetGridFilterOptions& filterOptions,
+            const AssetGridLayoutOptions& layoutOptions,
+            const AssetGridInput& input) const
+        {
+            AssetGridUpdateResult result{};
+            result.view.filter = filter(items, filterOptions);
+
+            const std::size_t inspectCount = (std::min)(
+                items.size(), asset_grid_maximum_items);
+            auto sourceIndexFor = [&](AssetGridItemId id) noexcept
+                -> std::uint32_t
+            {
+                if (!id)
+                    return invalid_asset_grid_source_index;
+                for (std::size_t index = 0; index < inspectCount; ++index)
+                {
+                    if (items[index].id == id)
+                        return static_cast<std::uint32_t>(index);
+                }
+                return invalid_asset_grid_source_index;
+            };
+
+            if (state.selected_id.has_value()
+                && sourceIndexFor(state.selected_id.value()) == invalid_asset_grid_source_index)
+            {
+                state.selected_id.reset();
+                result.selection_changed = true;
+            }
+            if (input.clear_selection && state.selected_id.has_value())
+            {
+                state.selected_id.reset();
+                result.selection_changed = true;
+            }
+            if (input.requested_selection.has_value())
+            {
+                const std::uint32_t requestedIndex = sourceIndexFor(
+                    input.requested_selection.value());
+                if (requestedIndex != invalid_asset_grid_source_index
+                    && items[requestedIndex].enabled
+                    && state.selected_id != input.requested_selection)
+                {
+                    state.selected_id = input.requested_selection;
+                    result.selection_changed = true;
+                }
+            }
+
+            result.view.layout = layout(
+                items,
+                result.view.filter,
+                layoutOptions,
+                state,
+                input.pointer_position,
+                input.pointer_present
+                    || input.pointer_pressed
+                    || input.pointer_activated
+                    || input.context_requested);
+            const AssetGridTileLayout* hitTile = nullptr;
+            for (const AssetGridTileLayout& tile : result.view.layout.visible_tiles)
+            {
+                if (tile.enabled && contains(tile.tile, input.pointer_position))
+                {
+                    hitTile = &tile;
+                    break;
+                }
+            }
+
+            if (input.pointer_pressed)
+            {
+                if (hitTile != nullptr)
+                {
+                    if (!state.selected_id.has_value()
+                        || state.selected_id.value() != hitTile->id)
+                    {
+                        state.selected_id = hitTile->id;
+                        result.selection_changed = true;
+                    }
+                }
+                else if (layoutOptions.clear_selection_on_empty_press
+                    && contains(layoutOptions.viewport, input.pointer_position)
+                    && state.selected_id.has_value())
+                {
+                    state.selected_id.reset();
+                    result.selection_changed = true;
+                }
+            }
+
+            if (input.context_requested && hitTile != nullptr)
+            {
+                if (!state.selected_id.has_value()
+                    || state.selected_id.value() != hitTile->id)
+                {
+                    state.selected_id = hitTile->id;
+                    result.selection_changed = true;
+                }
+                result.context_requested_id = hitTile->id;
+                result.context_requested_source_index = hitTile->source_index;
+                result.context_request_valid = true;
+            }
+
+            if (input.pointer_activated && hitTile != nullptr
+                && hitTile->activation != AssetGridActivationRole::none)
+            {
+                if (!state.selected_id.has_value()
+                    || state.selected_id.value() != hitTile->id)
+                {
+                    result.selection_changed = true;
+                }
+                state.selected_id = hitTile->id;
+                result.activated_id = hitTile->id;
+                result.activated_source_index = hitTile->source_index;
+                result.activation = hitTile->activation;
+                result.activation_requested = true;
+            }
+            else if (input.activate_selected && state.selected_id.has_value())
+            {
+                const std::uint32_t selectedIndex = sourceIndexFor(
+                    state.selected_id.value());
+                if (selectedIndex != invalid_asset_grid_source_index
+                    && items[selectedIndex].enabled
+                    && items[selectedIndex].activation != AssetGridActivationRole::none)
+                {
+                    result.activated_id = state.selected_id;
+                    result.activated_source_index = selectedIndex;
+                    result.activation = items[selectedIndex].activation;
+                    result.activation_requested = true;
+                }
+            }
+
+            result.selected_id = state.selected_id;
+            if (state.selected_id.has_value())
+            {
+                result.selected_source_index = sourceIndexFor(state.selected_id.value());
+                for (AssetGridTileLayout& tile : result.view.layout.visible_tiles)
+                    tile.selected = tile.id == state.selected_id.value();
+            }
+            return result;
+        }
+    };
+
+    [[nodiscard]] inline const AssetGridController& asset_grid_controller() noexcept
+    {
+        static const AssetGridController controller{};
+        return controller;
+    }
+
+    [[nodiscard]] inline AssetGridFilterResult filter_asset_grid_items(
+        std::span<const AssetGridItem> items,
+        const AssetGridFilterOptions& options = {})
+    {
+        return asset_grid_controller().filter(items, options);
+    }
+
+    [[nodiscard]] inline AssetGridLayout make_asset_grid_layout(
+        std::span<const AssetGridItem> items,
+        const AssetGridFilterResult& filtered,
+        const AssetGridLayoutOptions& options,
+        const AssetGridState& state = {},
+        Vec2 pointerPosition = {},
+        bool pointerPresent = false)
+    {
+        return asset_grid_controller().layout(
+            items, filtered, options, state, pointerPosition, pointerPresent);
+    }
+
+    [[nodiscard]] inline AssetGridUpdateResult update_asset_grid(
+        AssetGridState& state,
+        std::span<const AssetGridItem> items,
+        const AssetGridFilterOptions& filterOptions,
+        const AssetGridLayoutOptions& layoutOptions,
+        const AssetGridInput& input = {})
+    {
+        return asset_grid_controller().update(
+            state, items, filterOptions, layoutOptions, input);
+    }
     enum class PopupPlacement : std::uint8_t
     {
         below,
@@ -517,6 +2279,136 @@ export namespace epochengine::gui_lib
         bottom,
         center
     };
+
+    enum class DockGuideTarget : std::uint8_t
+    {
+        none,
+        left_tabs,
+        right_tabs,
+        bottom_left_tabs,
+        bottom_right_tabs,
+        left_context,
+        right_context,
+        float_window
+    };
+
+    struct DockGuideOptions
+    {
+        Rect guide_bounds{};
+        Rect left_tabs_preview{};
+        Rect right_tabs_preview{};
+        Rect bottom_left_tabs_preview{};
+        Rect bottom_right_tabs_preview{};
+        Rect left_context_preview{};
+        Rect right_context_preview{};
+        Rect floating_preview{};
+        Vec2 pointer{};
+        float guide_extent{ 94.0f };
+        float guide_gap{ 8.0f };
+        bool allow_side_tabs{ true };
+        bool allow_bottom_tabs{ true };
+        bool allow_contexts{};
+        bool allow_float{ true };
+        bool center_context_guides_in_previews{};
+    };
+
+    struct DockGuide
+    {
+        DockGuideTarget target{ DockGuideTarget::none };
+        Rect target_bounds{};
+        Rect preview_bounds{};
+        bool hovered{};
+    };
+
+    struct DockGuideLayout
+    {
+        DockGuide guides[7]{};
+        std::uint32_t count{};
+        DockGuideTarget hovered_target{ DockGuideTarget::none };
+        Rect hovered_preview{};
+    };
+
+    inline constexpr std::uint32_t maximum_dock_tabs{ 64U };
+    inline constexpr std::uint32_t invalid_dock_tab_index{
+        (std::numeric_limits<std::uint32_t>::max)()
+    };
+
+    struct DockTabItem
+    {
+        std::uint64_t id{};
+        std::uint64_t remembered_group_id{};
+        std::uint32_t keyboard_order{};
+        bool active{};
+        bool closable{ true };
+    };
+
+    struct DockTabGroup
+    {
+        std::uint64_t id{};
+        DockTabItem tabs[maximum_dock_tabs]{};
+        std::uint32_t count{};
+    };
+
+    struct DockTabStripOptions
+    {
+        Rect strip_bounds{};
+        const Rect* tab_bounds{};
+        std::uint32_t tab_count{};
+        Vec2 pointer{};
+        Vec2 dragged_tab_size{ 120.0f, 28.0f };
+        std::uint64_t source_group_id{};
+        std::uint64_t target_group_id{};
+        std::uint32_t source_index{ invalid_dock_tab_index };
+        float marker_extent{ 3.0f };
+        bool drag_active{};
+        bool target_compatible{ true };
+        bool cancelled{};
+    };
+
+    struct DockTabStripLayout
+    {
+        Rect insertion_marker{};
+        Rect insertion_ghost{};
+        std::uint32_t insertion_index{ invalid_dock_tab_index };
+        bool target_hovered{};
+        bool direct_drop_available{};
+        bool suppress_outer_guides{};
+        bool no_op{};
+        bool cancelled{};
+    };
+
+    enum class DockTabMoveCode : std::uint8_t
+    {
+        moved,
+        unchanged,
+        invalid_group,
+        invalid_source,
+        invalid_insertion,
+        duplicate_tab,
+        target_full
+    };
+
+    struct DockTabMoveResult
+    {
+        DockTabMoveCode code{ DockTabMoveCode::invalid_source };
+        std::uint32_t source_index{ invalid_dock_tab_index };
+        std::uint32_t target_index{ invalid_dock_tab_index };
+        std::uint64_t active_tab_id{};
+
+        [[nodiscard]] constexpr explicit operator bool() const noexcept
+        {
+            return code == DockTabMoveCode::moved
+                || code == DockTabMoveCode::unchanged;
+        }
+    };
+
+    [[nodiscard]] DockTabStripLayout make_dock_tab_strip_layout(
+        const DockTabStripOptions& options) noexcept;
+    [[nodiscard]] DockTabMoveResult move_dock_tab(
+        DockTabGroup& source,
+        DockTabGroup& target,
+        std::uint32_t source_index,
+        std::uint32_t insertion_index) noexcept;
 
     struct DockPaneState
     {
@@ -619,6 +2511,8 @@ export namespace epochengine::gui_lib
 
     [[nodiscard]] const DockLayoutController& dock_layout_controller() noexcept;
     [[nodiscard]] bool is_valid_dock_slot(DockSlot slot) noexcept;
+    [[nodiscard]] DockGuideLayout make_dock_guide_layout(
+        const DockGuideOptions& options) noexcept;
     [[nodiscard]] bool dock_pane_requests_context_window(const DockPaneState& pane) noexcept;
     [[nodiscard]] DockPaneLayout make_dock_pane_layout(
         const DockPaneState& pane,
