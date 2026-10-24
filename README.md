@@ -281,5 +281,7 @@ Engine parent checkout as a fallback.
 
 ## License
 
-First-party source is MIT OR Apache-2.0, including the owner-authorized migrated GUI code.
-Third-party notices remain applicable. Historical releases retain their licenses.
+Current first-party source uses the Epoch source license in LICENSE
+(`LicenseRef-MIT-NoSell`); commercial use requires the copyright holder's permission.
+Third-party notices remain applicable. License grants already made for earlier
+published revisions are not revoked by this change.

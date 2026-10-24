@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT OR Apache-2.0
+// SPDX-License-Identifier: LicenseRef-MIT-NoSell
 // Renderer-independent UTF-8 clipping. Do not split codepoints at length limits.
 #pragma once
 

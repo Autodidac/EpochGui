@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT OR Apache-2.0
+// SPDX-License-Identifier: LicenseRef-MIT-NoSell
 #include <gui/chat_composer_layout.hpp>
 #include <cassert>
 #include <cmath>

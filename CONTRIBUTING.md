@@ -10,8 +10,9 @@ Follow README for the relevant library/example dependency graph. Report platform
 coverage and distinguish compilation, CPU tests and interactive runtime evidence.
 Never include credentials, generated caches or unrelated local files.
 
-Unless explicitly stated otherwise, contributions intentionally submitted for
-inclusion are offered under the project's MIT OR Apache-2.0 choice (inbound equals
-outbound). Submit only work you have authority to license; preserve third-party
-notices and identify borrowed material. Maintainers review changes and tests
-before merging. No separate CLA or sign-off requirement is imposed here.
+Submit only work you have authority to license. Preserve third-party notices and
+identify borrowed material and its exact license/provenance. Do not submit private
+engine self-coding source, credentials, or unlicensed code found elsewhere.
+Contribution acceptance requires reviewed permission for the maintainer's use and
+relicensing; discuss that agreement with the maintainer before merging. A pull
+request alone does not prove ownership or remove third-party obligations.

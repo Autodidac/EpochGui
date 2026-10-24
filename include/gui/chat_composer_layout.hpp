@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT OR Apache-2.0
+// SPDX-License-Identifier: LicenseRef-MIT-NoSell
 // Shared, renderer-independent geometry for the EpochGUI compact chat composer.
 #pragma once
 

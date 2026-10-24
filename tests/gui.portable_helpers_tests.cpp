@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT OR Apache-2.0
+// SPDX-License-Identifier: LicenseRef-MIT-NoSell
 #include <gui/status_strip_layout.hpp>
 #include <gui/utf8_text_layout.hpp>
 #include <array>
