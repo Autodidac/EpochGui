@@ -63,6 +63,12 @@
     <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\text_control.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\gui.text_layout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\gui.scrollbar_layout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\text_editor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -94,6 +100,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(EpochGuiSourceRoot)include\gui\layout_primitives.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(EpochGuiSourceRoot)include\gui\chat_composer_layout.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(EpochGuiSourceRoot)include\gui\circle_raster.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(EpochGuiSourceRoot)include\gui\rounded_corner_raster.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(EpochGuiSourceRoot)include\gui\status_strip_layout.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(EpochGuiSourceRoot)include\gui\utf8_text_layout.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(EpochGuiSourceRoot)include\gui\panel_host.hpp">

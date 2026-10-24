@@ -2,9 +2,9 @@
 
 EpochGui is a portable C++23 GUI layout, input-adapter, raster-data, and geometry library used by EpochEngine and standalone applications.
 
-The current bundled and standalone source release is `v0.89.32`. EpochEngine
-mirrors this tree under `Engine/dep/EpochGui`; hosted publication verifies that
-the standalone repository and bundled tree remain identical.
+Current source version is `0.90.0`. Historical release `v0.89.32` remains
+unchanged. This source update incorporates the reviewed portable GUI extensions
+and dual licensing; release artifacts and interactive acceptance are separate.
 
 It owns reusable GUI state, layout calculations, hit testing, text-control behavior, docking metadata, an embedded fallback bitmap font, bounded PPM decoding, and optional renderer-neutral helpers. It does not own editor/runtime code, platform windows, OpenGL, or another rendering backend.
 
@@ -256,3 +256,30 @@ tests/input_tests.cpp                  Input and modal-arbitration tests
 ## Boundaries
 
 EpochGui remains backend-neutral. It owns reusable font bits, decoded raster data, and raster layout, but not font shaping, GPU texture creation, shaders, draw submission, native event translation, operating-system windows, native frame presentation, or host commands. Existing engine or platform input should be preferred when available.
+
+## Portable text and scrollbar extension
+
+The existing text controller now retains bounded undo/redo history. Visual-line
+wrapping and caret hit mapping accept the consumer's synchronous glyph metrics,
+preserving its font/UTF-8 policy. External line ranges are clamped; nonfinite
+pointer coordinates cannot become invalid indices. Scrollbar geometry and drag
+mapping share one compiled owner for drawing and input.
+
+`EpochGui.TextLayout`, `EpochGui.ScrollbarLayout` and `EpochGui.TextControl`
+exercise these additions against the real module library. No engine Context,
+renderer queue, editor composition or AI tools are required.
+
+The same integration includes responsive side-dock/chrome geometry, modal owner
+input scopes, chat-composer/status-strip geometry, UTF-8 prefix clipping, circle
+and rounded-corner raster helpers. They depend only on standard C++/EpochGui;
+chat geometry contains no model transport, source access or agent policy.
+
+EpochGui remains GUI-only: it has no Platform, Media, Audio, Engine or AI target
+dependency. Demo applications compose those libraries. Source admission uses
+this repository or an explicit source-root argument; it never searches an
+Engine parent checkout as a fallback.
+
+## License
+
+First-party source is MIT OR Apache-2.0, including the owner-authorized migrated GUI code.
+Third-party notices remain applicable. Historical releases retain their licenses.

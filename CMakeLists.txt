@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 4.4)
 
 set(CMAKE_CXX_SCAN_FOR_MODULES ON)
 
-project(EpochGui VERSION 0.89.32 LANGUAGES CXX)
+project(EpochGui VERSION 0.90.0 LANGUAGES CXX)
 
 option(EPOCHGUI_ENABLE_ROUNDED_RECT "Build the optional EpochGui rounded-rectangle geometry module." OFF)
 
@@ -15,7 +15,6 @@ endif()
 
 list(APPEND _epochgui_source_root_candidates
     "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../.."
 )
 
 set(_epochgui_resolved_source_root "")
@@ -31,7 +30,7 @@ endforeach()
 if(NOT _epochgui_resolved_source_root)
     message(FATAL_ERROR
         "EpochGui could not find its source root. Expected include/gui and "
-        "src/epochgui either beside this CMakeLists.txt or two directories above it. "
+        "src/epochgui beside this CMakeLists.txt. "
         "Pass -DEPOCHGUI_SOURCE_ROOT=<path> to select another source root.")
 endif()
 
@@ -47,6 +46,11 @@ set(EPOCHGUI_MODULES
 )
 
 set(EPOCHGUI_PUBLIC_HEADERS
+    "${EPOCHGUI_SOURCE_ROOT}/include/gui/chat_composer_layout.hpp"
+    "${EPOCHGUI_SOURCE_ROOT}/include/gui/circle_raster.hpp"
+    "${EPOCHGUI_SOURCE_ROOT}/include/gui/rounded_corner_raster.hpp"
+    "${EPOCHGUI_SOURCE_ROOT}/include/gui/status_strip_layout.hpp"
+    "${EPOCHGUI_SOURCE_ROOT}/include/gui/utf8_text_layout.hpp"
     "${EPOCHGUI_SOURCE_ROOT}/include/gui/dockable_window.hpp"
     "${EPOCHGUI_SOURCE_ROOT}/include/gui/dock_layout.hpp"
     "${EPOCHGUI_SOURCE_ROOT}/include/gui/floating_window.hpp"
@@ -74,6 +78,8 @@ set(EPOCHGUI_SOURCES
     "${EPOCHGUI_SOURCE_ROOT}/src/epochgui/popup_layout.cpp"
     "${EPOCHGUI_SOURCE_ROOT}/src/epochgui/system_workspace.cpp"
     "${EPOCHGUI_SOURCE_ROOT}/src/epochgui/text_control.cpp"
+    "${EPOCHGUI_SOURCE_ROOT}/src/epochgui/gui.text_layout.cpp"
+    "${EPOCHGUI_SOURCE_ROOT}/src/epochgui/gui.scrollbar_layout.cpp"
     "${EPOCHGUI_SOURCE_ROOT}/src/epochgui/text_editor.cpp"
     "${EPOCHGUI_SOURCE_ROOT}/src/epochgui/tile_workspace.cpp"
 )
@@ -130,6 +136,46 @@ source_group(TREE "${EPOCHGUI_MODULE_ROOT}/modules" PREFIX "Module Files" FILES 
 
 include(CTest)
 if(BUILD_TESTING)
+    add_executable(EpochGuiPortableHelpersTests tests/gui.portable_helpers_tests.cpp)
+    target_link_libraries(EpochGuiPortableHelpersTests PRIVATE EpochGui)
+    add_test(NAME EpochGui.PortableHelpers COMMAND EpochGuiPortableHelpersTests)
+    add_executable(EpochGuiChatComposerLayoutTests tests/chat_composer_layout_tests.cpp)
+    target_link_libraries(EpochGuiChatComposerLayoutTests PRIVATE EpochGui)
+    if(MSVC)
+        target_compile_options(EpochGuiChatComposerLayoutTests PRIVATE /UNDEBUG)
+    else()
+        target_compile_options(EpochGuiChatComposerLayoutTests PRIVATE -UNDEBUG)
+    endif()
+    add_test(NAME EpochGui.ChatComposerLayout COMMAND EpochGuiChatComposerLayoutTests)
+    add_executable(EpochGuiCircleRasterTests tests/circle_raster_tests.cpp)
+    target_link_libraries(EpochGuiCircleRasterTests PRIVATE EpochGui)
+    if(MSVC)
+        target_compile_options(EpochGuiCircleRasterTests PRIVATE /UNDEBUG)
+    else()
+        target_compile_options(EpochGuiCircleRasterTests PRIVATE -UNDEBUG)
+    endif()
+    add_test(NAME EpochGui.CircleRaster COMMAND EpochGuiCircleRasterTests)
+    add_executable(EpochGuiRoundedCornerRasterTests tests/rounded_corner_raster_tests.cpp)
+    target_link_libraries(EpochGuiRoundedCornerRasterTests PRIVATE EpochGui)
+    if(MSVC)
+        target_compile_options(EpochGuiRoundedCornerRasterTests PRIVATE /UNDEBUG)
+    else()
+        target_compile_options(EpochGuiRoundedCornerRasterTests PRIVATE -UNDEBUG)
+    endif()
+    add_test(NAME EpochGui.RoundedCornerRaster COMMAND EpochGuiRoundedCornerRasterTests)
+    add_executable(EpochGuiPopupLayoutTests tests/popup_layout_tests.cpp)
+    target_link_libraries(EpochGuiPopupLayoutTests PRIVATE EpochGui)
+    target_compile_definitions(EpochGuiPopupLayoutTests PRIVATE EPOCHGUI_TEST_MODULE_IMPORT=1)
+    add_test(NAME EpochGui.PopupLayout COMMAND EpochGuiPopupLayoutTests)
+    add_executable(EpochGuiTextLayoutTests tests/gui.text_layout_tests.cpp)
+    target_link_libraries(EpochGuiTextLayoutTests PRIVATE EpochGui)
+    target_compile_features(EpochGuiTextLayoutTests PRIVATE cxx_std_23)
+    add_test(NAME EpochGui.TextLayout COMMAND EpochGuiTextLayoutTests)
+    add_executable(EpochGuiScrollbarLayoutTests tests/gui.scrollbar_layout_tests.cpp)
+    target_link_libraries(EpochGuiScrollbarLayoutTests PRIVATE EpochGui)
+    target_compile_features(EpochGuiScrollbarLayoutTests PRIVATE cxx_std_23)
+    add_test(NAME EpochGui.ScrollbarLayout COMMAND EpochGuiScrollbarLayoutTests)
+
     add_executable(EpochGuiDockLayoutTests
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/dock_layout_tests.cpp"
     )

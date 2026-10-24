@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: LicenseRef-MIT-NoSell
+// SPDX-License-Identifier: MIT OR Apache-2.0
 
 #include <gui/hierarchy_tree.hpp>
 

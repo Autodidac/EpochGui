@@ -85,7 +85,6 @@
   </PropertyGroup>
   <PropertyGroup Label="EpochGuiSourceRoot">
     <EpochGuiSourceRoot Condition="'$(EpochGuiSourceRoot)'=='' and Exists('$(ProjectDir)include\gui\floating_window.hpp')">$(ProjectDir)</EpochGuiSourceRoot>
-    <EpochGuiSourceRoot Condition="'$(EpochGuiSourceRoot)'=='' and Exists('$(ProjectDir)..\..\include\gui\floating_window.hpp')">$(ProjectDir)..\..\</EpochGuiSourceRoot>
   </PropertyGroup>
   <PropertyGroup Label="EpochGuiModuleRoot">
     <EpochGuiModuleRoot Condition="'$(EpochGuiModuleRoot)'=='' and Exists('$(ProjectDir)modules\epoch.gui.ixx')">$(ProjectDir)</EpochGuiModuleRoot>
@@ -99,7 +98,7 @@
     <IntDir Condition="'$(SolutionPath)'=='' or '$(SolutionPath)'=='*Undefined*'">$(ProjectDir)build\msvc-int\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <Target Name="ValidateEpochGuiSourceRoot" BeforeTargets="PrepareForBuild">
-    <Error Condition="'$(EpochGuiSourceRoot)'==''" Text="EpochGui could not find include\gui and src\epochgui. Keep this project in Engine\dep\EpochGui, place include and src beside the project in a standalone mirror, or pass /p:EpochGuiSourceRoot=&lt;path-with-trailing-slash&gt;." />
+    <Error Condition="'$(EpochGuiSourceRoot)'==''" Text="EpochGui could not find include\gui and src\epochgui. Place include and src beside this standalone project, or pass /p:EpochGuiSourceRoot=&lt;path-with-trailing-slash&gt;." />
     <Error Condition="'$(EpochGuiModuleRoot)'==''" Text="EpochGui could not find modules\epoch.gui.ixx. Keep modules beside EpochGui.vcxproj or pass /p:EpochGuiModuleRoot=&lt;path-with-trailing-slash&gt;." />
   </Target>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -180,6 +179,8 @@
     <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\panel_host.cpp" />
     <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\popup_layout.cpp" />
     <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\text_control.cpp" />
+    <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\gui.text_layout.cpp" />
+    <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\gui.scrollbar_layout.cpp" />
     <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\text_editor.cpp" />
     <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\tile_workspace.cpp" />
 
@@ -196,6 +197,11 @@
     <ClInclude Include="$(EpochGuiSourceRoot)include\gui\font.hpp" />
     <ClInclude Include="$(EpochGuiSourceRoot)include\gui\hierarchy_tree.hpp" />
     <ClInclude Include="$(EpochGuiSourceRoot)include\gui\layout_primitives.hpp" />
+    <ClInclude Include="$(EpochGuiSourceRoot)include\gui\chat_composer_layout.hpp" />
+    <ClInclude Include="$(EpochGuiSourceRoot)include\gui\circle_raster.hpp" />
+    <ClInclude Include="$(EpochGuiSourceRoot)include\gui\rounded_corner_raster.hpp" />
+    <ClInclude Include="$(EpochGuiSourceRoot)include\gui\status_strip_layout.hpp" />
+    <ClInclude Include="$(EpochGuiSourceRoot)include\gui\utf8_text_layout.hpp" />
     <ClInclude Include="$(EpochGuiSourceRoot)include\gui\node_graph_workspace.hpp" />
     <ClInclude Include="$(EpochGuiSourceRoot)include\gui\panel_host.hpp" />
     <ClInclude Include="$(EpochGuiSourceRoot)include\gui\popup_layout.hpp" />
