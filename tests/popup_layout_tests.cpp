@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // EpochGUI portable popup placement contract; no native window or renderer.
 #if defined(EPOCHGUI_TEST_MODULE_IMPORT)
 import epoch.gui;

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 #include <cmath>
 
 import epoch.gui.input;

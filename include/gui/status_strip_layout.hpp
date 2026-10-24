@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // EpochGUI: bounded, responsive status-strip geometry. No renderer dependencies.
 #pragma once
 

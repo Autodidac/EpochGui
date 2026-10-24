@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: LicenseRef-MIT-NoSell
+// SPDX-License-Identifier: MPL-2.0
 // EpochGUI: analytic inverse-circle coverage for true antialiased rounded corners.
 #pragma once
 

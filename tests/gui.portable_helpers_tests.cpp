@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: LicenseRef-MIT-NoSell
+// SPDX-License-Identifier: MPL-2.0
 #include <gui/status_strip_layout.hpp>
 #include <gui/utf8_text_layout.hpp>
 #include <array>

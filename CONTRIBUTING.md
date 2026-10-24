@@ -1,18 +1,15 @@
-# Contributing
+# Contributing to EpochGui
 
-Open an issue or pull request in this repository on GitHub. Describe the problem,
-proposed behavior and validation; keep unrelated changes separate. Preserve public
-APIs and native host/thread ownership, and add focused tests for behavior changes.
+Use the existing owning APIs, threading and lifecycle contracts. Submit a focused
+GitHub issue or pull request describing the problem, behavior, provenance and
+validation. Build Debug and Release with the CMake/compiler versions in the
+owning build files and run CTest. Distinguish CPU/build proof from native runtime
+acceptance. Exclude secrets, generated output and unrelated local files.
 
-Use a C++23 module-capable compiler and the CMake version required by CMakeLists.txt. Configure a separate
-build directory with BUILD_TESTING=ON, build Debug and Release, and run CTest.
-Follow README for the relevant library/example dependency graph. Report platform
-coverage and distinguish compilation, CPU tests and interactive runtime evidence.
-Never include credentials, generated caches or unrelated local files.
-
-Submit only work you have authority to license. Preserve third-party notices and
-identify borrowed material and its exact license/provenance. Do not submit private
-engine self-coding source, credentials, or unlicensed code found elsewhere.
-Contribution acceptance requires reviewed permission for the maintainer's use and
-relicensing; discuss that agreement with the maintainer before merging. A pull
-request alone does not prove ownership or remove third-party obligations.
+Public source contributions use MPL-2.0. Before acceptance, each contributor must
+explicitly record the declaration in CONTRIBUTOR_LICENSE.md for the exact
+submitted commits. Contributors retain ownership; that declaration grants Adam
+Rushford the stated non-exclusive copyright/relicensing and patent rights.
+Do not infer acceptance or authority from file presence or a PR checkbox.
+Maintainers review tests, provenance, third-party rights and the acceptance record
+before merge. Preserve authorship and origin notices; see NOTICE and TRADEMARKS.md.

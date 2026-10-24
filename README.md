@@ -1,10 +1,12 @@
 # EpochGui
 
+MPL-2.0 permits commercial use, including proprietary larger works subject to its covered-file obligations. See [Commercial use and giving back](#commercial-use-and-giving-back) for licensing, origin links and voluntary credit requests.
+
 EpochGui is a portable C++23 GUI layout, input-adapter, raster-data, and geometry library used by EpochEngine and standalone applications.
 
 Current source version is `0.90.0`. Historical release `v0.89.32` remains
 unchanged. This source update incorporates the reviewed portable GUI extensions
-and dual licensing; release artifacts and interactive acceptance are separate.
+and MPL-2.0 licensing; release artifacts and interactive acceptance are separate.
 
 It owns reusable GUI state, layout calculations, hit testing, text-control behavior, docking metadata, an embedded fallback bitmap font, bounded PPM decoding, and optional renderer-neutral helpers. It does not own editor/runtime code, platform windows, OpenGL, or another rendering backend.
 
@@ -279,9 +281,35 @@ dependency. Demo applications compose those libraries. Source admission uses
 this repository or an explicit source-root argument; it never searches an
 Engine parent checkout as a fallback.
 
+## Commercial use and giving back
+
+A larger combined work may use its own license, including a proprietary commercial license, provided the covered files remain under MPL-2.0 and its applicable obligations are met.
+
+Commercial use and standalone commercial redistribution are allowed by MPL-2.0;
+you do not have to combine EpochGui with another product. When distributing
+covered source modifications, make the covered modified files available under
+MPL-2.0 and retain its required notices. Follow LICENSE for the precise source
+availability and executable distribution obligations. Private edits do not
+require publication, and MPL does not require an upstream pull request.
+
+Please give visible, accurate credit in your application's About screen or its
+README, linking to [the canonical EpochGui repository](https://github.com/Autodidac/EpochGui)
+and [EpochEngine](https://github.com/Autodidac/EpochEngine), which this work
+supports. Please offer generally useful changes as upstream pull requests with
+clear author credit and provenance, following CONTRIBUTING.md. These are
+community requests, not additional copyright-license conditions.
+Accepted pull-request contributions retain author credit in GitHub history and in project acknowledgements where applicable.
+
+
+Keep derivative product branding distinct and do not imply ownership of another
+author's work or official endorsement. Factual origin, contributor credit and API
+compatibility references are welcome; see TRADEMARKS.md.
+
 ## License
 
-Current first-party source uses the Epoch source license in LICENSE
-(`LicenseRef-MIT-NoSell`); commercial use requires the copyright holder's permission.
-Third-party notices remain applicable. License grants already made for earlier
-published revisions are not revoked by this change.
+First-party source uses **MPL-2.0**; LICENSE contains the unmodified full text.
+Private modification is allowed; distribution obligations apply to covered
+files under that license. Commercial use is allowed. Required notices and
+third-party licenses remain in force. Historical grants are not revoked.
+See NOTICE for origin, TRADEMARKS.md for separate branding rules, and
+CONTRIBUTING.md / CONTRIBUTOR_LICENSE.md for explicit contribution acceptance.

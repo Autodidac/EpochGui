@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: LicenseRef-MIT-NoSell
+// SPDX-License-Identifier: MPL-2.0
 // Renderer-independent UTF-8 clipping. Do not split codepoints at length limits.
 #pragma once
 
