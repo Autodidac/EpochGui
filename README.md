@@ -9,8 +9,9 @@ unchanged. This source update incorporates the reviewed portable GUI extensions
 and MPL-2.0 licensing; release artifacts and interactive acceptance are separate.
 
 Patch 0.90.1 keeps short key taps, releases and key repeats until the next GUI
-frame reads them. Invalid key/button values are ignored. This retains frame
-edges; it does not record an entire mouse-drag path.
+frame reads them. Invalid key/button values are ignored. The default snapshot
+retains frame edges; the optional ordered API below also preserves drags that
+start and finish between draws.
 
 It owns reusable GUI state, layout calculations, hit testing, text-control behavior, docking metadata, an embedded fallback bitmap font, bounded PPM decoding, and optional renderer-neutral helpers. It does not own editor/runtime code, platform windows, OpenGL, or another rendering backend.
 
@@ -188,6 +189,19 @@ tracker.set_pointer_button(input::PointerButton::left, button_down);
 
 const auto floating_input = input::floating_window_input(tracker.frame());
 ```
+
+A whole drag can arrive between two draws. For that case, call
+`tracker.enable_ordered_events()` once. Read each event with
+`tracker.next_event_frame(event)`, update your existing controls, then draw once.
+Button, key and modifier changes stay in order. Hosts with several windows can
+set an opaque `input_source` identity using `set_input_source()`; changing the
+source also keeps neighboring motion events separate. Only neighboring pointer moves
+are joined. The normal `frame()` API remains available without opting in.
+
+The queue holds at most 256 events. If `events_overflowed()` is true, cancel the
+active gesture and call `reset()`. No fake mouse release or click is sent.
+`reset()` keeps ordered mode enabled. Keep text in your application and deliver
+it between the earlier and later input events. Call `finish_frame()` after drawing.
 
 The fallback module provides:
 

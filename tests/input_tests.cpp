@@ -60,6 +60,77 @@ int main()
     edges.set_key(static_cast<input::Key>(255), true, true);
     if (edges.frame().pointer(input::PointerButton::left).down
         || edges.frame().key(input::Key::escape).down || edges.frame().sequence != 0) return 27;
+    input::InputTracker ordered;
+    input::InputFrame event;
+    if (edges.next_event_frame(event)) return 40; // Snapshot users opt in explicitly.
+    ordered.enable_ordered_events();
+    ordered.set_modifiers({.shift = true});
+    ordered.set_pointer_position({10.0f, 20.0f});
+    ordered.set_pointer_button(input::PointerButton::left, true);
+    ordered.set_pointer_position({40.0f, 50.0f});
+    ordered.set_pointer_position({60.0f, 70.0f}); // Adjacent moves may coalesce.
+    ordered.set_key(input::Key::arrow_left, true);
+    ordered.set_modifiers({});
+    ordered.set_pointer_position({80.0f, 90.0f}); // Cannot merge across the key/modifier edge.
+    ordered.set_pointer_button(input::PointerButton::left, false);
+    unsigned event_count = 0;
+    bool press_seen = false, move_seen = false, key_seen = false, release_seen = false;
+    while (ordered.next_event_frame(event))
+    {
+        ++event_count;
+        const auto& left = event.pointer(input::PointerButton::left);
+        if (left.pressed)
+            press_seen = left.down && !left.released && near(event.pointer_position.x, 10.0f)
+                && near(event.pointer_position.y, 20.0f) && event.modifiers.shift;
+        if (near(event.pointer_position.x, 60.0f) && event.pointer_delta.x != 0.0f)
+            move_seen = left.down && !left.pressed && event.modifiers.shift;
+        if (event.key(input::Key::arrow_left).pressed)
+            key_seen = left.down && event.modifiers.shift && near(event.pointer_position.x, 60.0f);
+        if (left.released)
+            release_seen = !left.down && !left.pressed && !event.modifiers.shift
+                && event.key(input::Key::arrow_left).down && near(event.pointer_position.x, 80.0f);
+    }
+    if (event_count != 8 || !press_seen || !move_seen || !key_seen || !release_seen) return 41;
+    if (ordered.frame().key(input::Key::arrow_left).pressed
+        || !ordered.frame().key(input::Key::arrow_left).down) return 42;
+    ordered.finish_frame();
+    ordered.reset(); // Reset clears pending events but preserves ordered mode.
+    for (unsigned index = 0; index < 10000; ++index)
+        ordered.set_pointer_position({static_cast<float>(index), 25.0f});
+    if (ordered.events_overflowed() || !ordered.next_event_frame(event)
+        || !near(event.pointer_position.x, 9999.0f) || ordered.next_event_frame(event)) return 43;
+    ordered.reset();
+    for (std::size_t index = 0; index <= input::InputTracker::maximum_pending_events; ++index)
+        ordered.set_key(input::Key::space, (index % 2) == 0);
+    if (!ordered.events_overflowed() || ordered.next_event_frame(event)
+        || ordered.frame().key(input::Key::space).down || ordered.frame().key(input::Key::space).released) return 44;
+    ordered.set_pointer_button(input::PointerButton::left, true); // Ignored until cancellation/reset.
+    if (ordered.frame().pointer(input::PointerButton::left).down) return 45;
+    ordered.reset();
+    ordered.set_pointer_button(input::PointerButton::left, false);
+    if (!ordered.next_event_frame(event) || event.pointer(input::PointerButton::left).released) return 46;
+    ordered.set_pointer_button(input::PointerButton::left, true);
+    ordered.reset();
+    if (ordered.next_event_frame(event) || ordered.events_overflowed()
+        || ordered.frame().pointer(input::PointerButton::left).down) return 47;
+    ordered.reset();
+    ordered.set_input_source(7);
+    ordered.set_pointer_position({10.0f, 15.0f});
+    ordered.set_pointer_button(input::PointerButton::left, true);
+    ordered.set_input_source(9);
+    ordered.set_pointer_position({90.0f, 95.0f});
+    ordered.set_pointer_button(input::PointerButton::left, false);
+    event_count = 0;
+    press_seen = release_seen = false;
+    while (ordered.next_event_frame(event))
+    {
+        ++event_count;
+        if (event.pointer(input::PointerButton::left).pressed)
+            press_seen = event.input_source == 7 && near(event.pointer_position.x, 10.0f);
+        if (event.pointer(input::PointerButton::left).released)
+            release_seen = event.input_source == 9 && near(event.pointer_position.x, 90.0f);
+    }
+    if (event_count != 6 || !press_seen || !release_seen) return 48;
     input::InputTracker tracker{};
     tracker.set_pointer_position({ 40.0f, 50.0f });
     tracker.set_pointer_button(input::PointerButton::left, true);
