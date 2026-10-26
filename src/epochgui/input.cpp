@@ -130,11 +130,13 @@ namespace epochengine::gui_lib::input
         bool down,
         std::uint8_t click_count) noexcept
     {
+        if (static_cast<std::size_t>(button) >= frame_.pointer_buttons.size()) return;
         DigitalState& state = frame_.pointer_buttons[pointer_index(button)];
         if (down != state.down)
         {
-            state.pressed = down;
-            state.released = !down;
+            // A native event pump can deliver both edges before the consumer frame.
+            state.pressed = state.pressed || down;
+            state.released = state.released || !down;
             state.down = down;
         }
         if (down)
@@ -143,14 +145,16 @@ namespace epochengine::gui_lib::input
 
     void InputTracker::set_key(Key key_code, bool down, bool repeated) noexcept
     {
+        if (static_cast<std::size_t>(key_code) >= frame_.keys.size()) return;
         DigitalState& state = frame_.keys[key_index(key_code)];
         if (down != state.down)
         {
-            state.pressed = down;
-            state.released = !down;
+            // A native event pump can deliver both edges before the consumer frame.
+            state.pressed = state.pressed || down;
+            state.released = state.released || !down;
             state.down = down;
         }
-        state.repeated = repeated;
+        state.repeated = state.repeated || (down && repeated);
     }
 
     void InputTracker::set_modifiers(ModifierState modifiers) noexcept

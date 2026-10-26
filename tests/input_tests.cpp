@@ -16,6 +16,50 @@ namespace
 
 int main()
 {
+    // Native pumps may deliver a complete tap before the next consumer frame.
+    input::InputTracker edges;
+    edges.set_key(input::Key::tab, true, false);
+    edges.set_key(input::Key::tab, false, false);
+    if (!edges.frame().key(input::Key::tab).pressed
+        || !edges.frame().key(input::Key::tab).released
+        || edges.frame().key(input::Key::tab).down) return 20;
+    edges.finish_frame();
+    if (edges.frame().key(input::Key::tab).pressed || edges.frame().key(input::Key::tab).released) return 21;
+    edges.set_key(input::Key::arrow_left, true, false);
+    edges.set_key(input::Key::arrow_left, true, true);
+    edges.set_key(input::Key::arrow_left, false, false);
+    if (!edges.frame().key(input::Key::arrow_left).repeated
+        || !edges.frame().key(input::Key::arrow_left).pressed
+        || !edges.frame().key(input::Key::arrow_left).released
+        || edges.frame().key(input::Key::arrow_left).down) return 22;
+    edges.finish_frame();
+    if (edges.frame().key(input::Key::arrow_left).repeated) return 23;
+    edges.set_key(input::Key::enter, false, true); // A release is never a repeat.
+    if (edges.frame().key(input::Key::enter).repeated) return 24;
+    edges.set_pointer_button(input::PointerButton::left, true, 2);
+    edges.set_pointer_button(input::PointerButton::left, false);
+    edges.set_pointer_button(input::PointerButton::left, true);
+    const auto& button = edges.frame().pointer(input::PointerButton::left);
+    if (!button.pressed || !button.released || !button.down || button.click_count != 2) return 25;
+    edges.finish_frame();
+    if (!button.down || button.pressed || button.released || button.click_count != 0) return 26;
+    edges.set_key(input::Key::space, true, false);
+    edges.finish_frame();
+    edges.set_key(input::Key::space, false, false);
+    edges.set_key(input::Key::space, true, false);
+    if (!edges.frame().key(input::Key::space).down
+        || !edges.frame().key(input::Key::space).pressed
+        || !edges.frame().key(input::Key::space).released) return 28;
+    edges.set_key(input::Key::escape, true, true);
+    edges.set_key(static_cast<input::Key>(255), false, false);
+    edges.set_pointer_button(static_cast<input::PointerButton>(255), false);
+    if (!edges.frame().key(input::Key::escape).down || !edges.frame().key(input::Key::escape).repeated
+        || !button.down) return 29;
+    edges.reset();
+    edges.set_pointer_button(static_cast<input::PointerButton>(255), true);
+    edges.set_key(static_cast<input::Key>(255), true, true);
+    if (edges.frame().pointer(input::PointerButton::left).down
+        || edges.frame().key(input::Key::escape).down || edges.frame().sequence != 0) return 27;
     input::InputTracker tracker{};
     tracker.set_pointer_position({ 40.0f, 50.0f });
     tracker.set_pointer_button(input::PointerButton::left, true);
