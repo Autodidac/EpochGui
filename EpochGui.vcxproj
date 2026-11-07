@@ -165,6 +165,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(EpochGuiModuleRoot)modules\epoch.gui.ixx" />
+    <ClCompile Include="$(EpochGuiModuleRoot)modules\epoch.gui.command_menu.ixx" />
     <ClCompile Include="$(EpochGuiModuleRoot)modules\epoch.gui.font.ixx" />
     <ClCompile Include="$(EpochGuiModuleRoot)modules\epoch.gui.image.ixx" />
     <ClCompile Include="$(EpochGuiModuleRoot)modules\epoch.gui.tile_workspace.ixx" />
@@ -178,6 +179,7 @@
     <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\node_graph_workspace.cpp" />
     <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\panel_host.cpp" />
     <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\popup_layout.cpp" />
+    <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\gui.command_menu.cpp" />
     <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\text_control.cpp" />
     <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\gui.text_layout.cpp" />
     <ClCompile Include="$(EpochGuiSourceRoot)src\epochgui\gui.scrollbar_layout.cpp" />
