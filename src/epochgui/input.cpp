@@ -10,6 +10,27 @@ module epoch.gui.input;
 
 namespace epochengine::gui_lib::input
 {
+    bool popup_allows_pointer(PopupCapture capture) noexcept
+    {
+        if (capture.selection_open_this_frame && !capture.current_selection_owner)
+            return false;
+        if (capture.application_menu_open_this_frame && !capture.application_menu_owner)
+            return false;
+        return true;
+    }
+
+    bool floating_chrome_owns_press(bool inside_window, bool movable,
+        bool title_hovered, bool close_hovered, bool resize_hovered) noexcept
+    {
+        return inside_window && (close_hovered || resize_hovered
+            || (movable && title_hovered));
+    }
+
+    bool floating_absorb_unhandled_pointer(bool inside_window, bool already_consumed) noexcept
+    {
+        return inside_window && !already_consumed;
+    }
+
     namespace
     {
         [[nodiscard]] constexpr std::size_t pointer_index(PointerButton button) noexcept
@@ -309,7 +330,7 @@ namespace epochengine::gui_lib::input
 
     bool ModalInputArbiter::owner_input_allowed() const noexcept
     {
-        return !exclusive_owner_ || inside_owner_;
+        return !suppressed_ && (!exclusive_owner_ || inside_owner_);
     }
 
     bool ModalInputArbiter::pointer_allowed(Vec2 position) const noexcept
@@ -330,7 +351,62 @@ namespace epochengine::gui_lib::input
 
     bool ModalInputArbiter::background_input_allowed() const noexcept
     {
-        return mode_ == ModalInputMode::inactive;
+        return !suppressed_ && mode_ == ModalInputMode::inactive;
+    }
+
+    ScopedInputSuppression::ScopedInputSuppression(
+        ModalInputArbiter& owner, bool suppress) noexcept
+    {
+        if (!suppress) return;
+        owner_ = &owner;
+        previous_ = owner.suppressed_;
+        owner.suppressed_ = true;
+    }
+
+    ScopedInputSuppression::~ScopedInputSuppression() noexcept
+    {
+        if (owner_) owner_->suppressed_ = previous_;
+    }
+
+    PointerDragResult update_pointer_drag(PointerDragState& state,
+        const PointerDragInput& input, float threshold) noexcept
+    {
+        PointerDragResult result{};
+        if (input.cancelled || !std::isfinite(input.position.x)
+            || !std::isfinite(input.position.y))
+        {
+            state = {};
+            return result;
+        }
+        if (!state.pending && input.pressed && input.press_allowed)
+        {
+            state.press_position = input.position;
+            state.pending = true;
+            state.dragging = false;
+            result.pressed = true;
+        }
+        if (!state.pending) return result;
+        result.delta = {input.position.x - state.press_position.x,
+            input.position.y - state.press_position.y};
+        if (!std::isfinite(result.delta.x) || !std::isfinite(result.delta.y))
+        {
+            state = {};
+            return {};
+        }
+        const float distance = result.delta.x * result.delta.x
+            + result.delta.y * result.delta.y;
+        const float limit = (std::max)(0.0f, finite_or(threshold, 4.0f));
+        if ((input.down || input.released) && distance >= limit * limit)
+            state.dragging = true;
+        result.dragging = state.dragging && input.down;
+        if (input.released)
+        {
+            result.released = state.dragging;
+            state = {};
+        }
+        else if (!input.down)
+            state = {};
+        return result;
     }
 
     ContextMenuRequest context_menu_request(

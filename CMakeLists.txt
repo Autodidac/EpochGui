@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 4.4)
 
 set(CMAKE_CXX_SCAN_FOR_MODULES ON)
 
-project(EpochGui VERSION 0.90.1 LANGUAGES CXX)
+project(EpochGui VERSION 0.90.2 LANGUAGES CXX)
 
 option(EPOCHGUI_ENABLE_ROUNDED_RECT "Build the optional EpochGui rounded-rectangle geometry module." OFF)
 
@@ -39,6 +39,7 @@ set(EPOCHGUI_MODULE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}" CACHE PATH "Directory con
 
 set(EPOCHGUI_MODULES
     "${EPOCHGUI_MODULE_ROOT}/modules/epoch.gui.ixx"
+    "${EPOCHGUI_MODULE_ROOT}/modules/epoch.gui.command_menu.ixx"
     "${EPOCHGUI_MODULE_ROOT}/modules/epoch.gui.font.ixx"
     "${EPOCHGUI_MODULE_ROOT}/modules/epoch.gui.image.ixx"
     "${EPOCHGUI_MODULE_ROOT}/modules/epoch.gui.tile_workspace.ixx"
@@ -76,6 +77,7 @@ set(EPOCHGUI_SOURCES
     "${EPOCHGUI_SOURCE_ROOT}/src/epochgui/node_graph_workspace.cpp"
     "${EPOCHGUI_SOURCE_ROOT}/src/epochgui/panel_host.cpp"
     "${EPOCHGUI_SOURCE_ROOT}/src/epochgui/popup_layout.cpp"
+    "${EPOCHGUI_SOURCE_ROOT}/src/epochgui/gui.command_menu.cpp"
     "${EPOCHGUI_SOURCE_ROOT}/src/epochgui/system_workspace.cpp"
     "${EPOCHGUI_SOURCE_ROOT}/src/epochgui/text_control.cpp"
     "${EPOCHGUI_SOURCE_ROOT}/src/epochgui/gui.text_layout.cpp"
@@ -136,6 +138,11 @@ source_group(TREE "${EPOCHGUI_MODULE_ROOT}/modules" PREFIX "Module Files" FILES 
 
 include(CTest)
 if(BUILD_TESTING)
+    add_executable(EpochGuiCommandMenuTests tests/gui.command_menu_tests.cpp)
+    target_link_libraries(EpochGuiCommandMenuTests PRIVATE EpochGui)
+    target_compile_features(EpochGuiCommandMenuTests PRIVATE cxx_std_23)
+    add_test(NAME EpochGui.CommandMenu COMMAND EpochGuiCommandMenuTests)
+
     add_executable(EpochGuiPortableHelpersTests tests/gui.portable_helpers_tests.cpp)
     target_link_libraries(EpochGuiPortableHelpersTests PRIVATE EpochGui)
     add_test(NAME EpochGui.PortableHelpers COMMAND EpochGuiPortableHelpersTests)

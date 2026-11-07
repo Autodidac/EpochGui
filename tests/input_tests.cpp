@@ -16,6 +16,35 @@ namespace
 
 int main()
 {
+    for (unsigned bits = 0; bits < 16; ++bits)
+    {
+        const bool selected = (bits & 1u) != 0, owner = (bits & 2u) != 0;
+        const bool menu = (bits & 4u) != 0, menu_owner = (bits & 8u) != 0;
+        if (input::popup_allows_pointer({selected, owner, menu, menu_owner})
+            != ((!selected || owner) && (!menu || menu_owner))) return 60;
+    }
+    for (unsigned bits = 0; bits < 32; ++bits)
+    {
+        const bool inside = (bits & 1u) != 0, movable = (bits & 2u) != 0;
+        const bool title = (bits & 4u) != 0, close = (bits & 8u) != 0;
+        const bool resize = (bits & 16u) != 0;
+        if (input::floating_chrome_owns_press(inside, movable, title, close, resize)
+            != (inside && (close || resize || (movable && title)))) return 61;
+    }
+    for (unsigned bits = 0; bits < 4; ++bits)
+    {
+        const bool inside = (bits & 1u) != 0, consumed = (bits & 2u) != 0;
+        if (input::floating_absorb_unhandled_pointer(inside, consumed)
+            != (inside && !consumed)) return 62;
+    }
+    // A body press belongs to children before absorption; title dragging is
+    // disabled for fixed windows, while close/resize keep their own presses.
+    if (input::floating_chrome_owns_press(true, true, false, false, false)
+        || !input::floating_absorb_unhandled_pointer(true, false)
+        || input::floating_absorb_unhandled_pointer(true, true)
+        || input::floating_chrome_owns_press(true, false, true, false, false)
+        || !input::floating_chrome_owns_press(true, false, false, true, false)) return 63;
+
     // Native pumps may deliver a complete tap before the next consumer frame.
     input::InputTracker edges;
     edges.set_key(input::Key::tab, true, false);
@@ -251,6 +280,64 @@ int main()
     modal.clear();
     if (modal.active() || !modal.pointer_allowed({ 20.0f, 20.0f }))
         return 11;
+
+    {
+        input::ScopedInputSuppression suppressed{modal};
+        if (modal.owner_input_allowed() || modal.pointer_allowed({20, 20})
+            || modal.background_input_allowed() || modal.active()
+            || modal.keyboard_captured()) return 70;
+        { input::ScopedInputSuppression nested{modal};
+          if (modal.owner_input_allowed()) return 71; }
+        { input::ScopedInputSuppression inactive{modal, false};
+          if (modal.owner_input_allowed()) return 72; }
+        if (modal.owner_input_allowed()) return 73;
+    }
+    if (!modal.owner_input_allowed() || !modal.background_input_allowed()) return 74;
+    modal.begin({{100,80},{300,220}});
+    modal.require_owner_scope();
+    modal.enter_owner_scope();
+    const auto boundsBefore = modal.bounds();
+    {
+        input::ScopedInputSuppression suppressed{modal};
+        if (modal.owner_input_allowed() || modal.pointer_allowed({120,100})
+            || !modal.keyboard_captured() || modal.mode()!=input::ModalInputMode::bounded
+            || modal.bounds().position.x!=boundsBefore.position.x) return 75;
+    }
+    if (!modal.owner_input_allowed() || !modal.pointer_allowed({120,100})
+        || modal.background_input_allowed()) return 76;
+    modal.leave_owner_scope();
+    { input::ScopedInputSuppression inactive{modal, false};
+      if (modal.owner_input_allowed()) return 77; }
+    modal.block_until_clear();
+    { input::ScopedInputSuppression suppressed{modal};
+      if (modal.pointer_allowed({120,100})) return 78; }
+    if (modal.mode()!=input::ModalInputMode::blocked_until_clear
+        || modal.pointer_allowed({120,100})) return 79;
+    modal.clear();
+
+    input::PointerDragState drag{};
+    auto step=input::update_pointer_drag(drag,
+        {.position={20,20},.down=true,.pressed=true,.press_allowed=true},3);
+    if(!step.pressed||!drag.pending||step.dragging) return 80;
+    step=input::update_pointer_drag(drag,{.position={60,45},.down=true},3);
+    if(!step.dragging||step.delta.x!=40||step.delta.y!=25) return 81;
+    step=input::update_pointer_drag(drag,{.position={60,45},.released=true},3);
+    if(!step.released||drag.pending||step.delta.x!=40) return 82;
+    (void)input::update_pointer_drag(drag,
+        {.position={20,20},.down=true,.pressed=true,.press_allowed=true},3);
+    step=input::update_pointer_drag(drag,{.position={60,45},.released=true},3);
+    if(!step.released||drag.pending) return 83;
+    (void)input::update_pointer_drag(drag,
+        {.position={20,20},.down=true,.pressed=true,.press_allowed=true},3);
+    step=input::update_pointer_drag(drag,{.position={21,21},.released=true},3);
+    if(step.released||step.dragging||drag.pending) return 84;
+    step=input::update_pointer_drag(drag,
+        {.position={20,20},.down=true,.pressed=true,.press_allowed=false},3);
+    if(step.pressed||drag.pending) return 85;
+    (void)input::update_pointer_drag(drag,
+        {.position={20,20},.down=true,.pressed=true,.press_allowed=true},3);
+    step=input::update_pointer_drag(drag,{.position={60,45},.cancelled=true},3);
+    if(step.released||drag.pending||drag.dragging) return 86;
 
     return 0;
 }
