@@ -4,9 +4,8 @@ MPL-2.0 permits commercial use, including proprietary larger works subject to it
 
 EpochGui is a portable C++23 GUI layout, input-adapter, raster-data, and geometry library used by EpochEngine and standalone applications.
 
-Current source candidate is `0.90.2`, prepared locally and unpublished. Historical
-releases remain unchanged. Release artifacts and interactive acceptance are
-separate gates.
+[EpochGui 0.90.2](https://github.com/Autodidac/EpochGui/releases/tag/v0.90.2)
+is published as source. Interactive acceptance is tracked separately.
 
 Patch 0.90.2 adds reusable popup/chrome input ownership, scoped input suppression
 and ordered pointer-drag state. Command menus share bounded flyout placement and
