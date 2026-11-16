@@ -4,10 +4,17 @@ MPL-2.0 permits commercial use, including proprietary larger works subject to it
 
 EpochGui is a portable C++23 GUI layout, input-adapter, raster-data, and geometry library used by EpochEngine and standalone applications.
 
-[EpochGui 0.90.2](https://github.com/Autodidac/EpochGui/releases/tag/v0.90.2)
-is published as source. Interactive acceptance is tracked separately.
+Current source version is `0.90.3`. Verified source snapshots are available
+from [EpochGui releases](https://github.com/Autodidac/EpochGui/releases).
 
-Patch 0.90.2 adds reusable popup/chrome input ownership, scoped input suppression
+Patch 0.90.3 cancels pending command presses when the caller loses button
+ownership. A later release cannot select a command from that cancelled press.
+Held presses, queued clicks and submenu navigation continue to work.
+Command-menu callers should pass the current held-button state in
+`CommandMenuInput::pointer_down` on each update, including frames without input edges.
+
+Patch [0.90.2](https://github.com/Autodidac/EpochGui/releases/tag/v0.90.2)
+adds reusable popup/chrome input ownership, scoped input suppression
 and ordered pointer-drag state. Command menus share bounded flyout placement and
 a 750 ms hover-exit delay. Floating windows can opt into viewport constraints;
 close geometry and compact chat spacing are consistent. Standalone module,
