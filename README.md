@@ -4,8 +4,11 @@ MPL-2.0 permits commercial use, including proprietary larger works subject to it
 
 EpochGui is a portable C++23 GUI layout, input-adapter, raster-data, and geometry library used by EpochEngine and standalone applications.
 
-Current source version is `0.90.3`. Verified source snapshots are available
+Current source version is `0.90.4`. Verified source snapshots are available
 from [EpochGui releases](https://github.com/Autodidac/EpochGui/releases).
+
+Patch 0.90.4 adds contrast-aware translucent surface colors and aligns tab
+labels and close targets vertically.
 
 Patch 0.90.3 cancels pending command presses when the caller loses button
 ownership. A later release cannot select a command from that cancelled press.
